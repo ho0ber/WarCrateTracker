@@ -1,7 +1,7 @@
 ## Interface: 110002
 ## Version: 1.0.0
 ## Title: WarCrateTracker
-## SavedVariables: crateDB
+## SavedVariables: crateDB, settings
 ## Notes: Announces, shares, and tracks the dropping of war crates
 ## Author: Hoober
 

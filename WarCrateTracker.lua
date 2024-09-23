@@ -85,8 +85,9 @@ local function OnEvent(self, event, ...)
             end
         end
         if npcName == "Malicia" then
-            --Looks like you could all use some resources. Hmm, there's a saying for this-- survival of the fittest.
-            crateAnnounced(npcName, text)
+            if string.find(text, "Looks like you could all use some resources. Hmm, there's a saying for this-- survival of the fittest.") then
+                crateAnnounced(npcName, text)
+            end
         end
         if npcName == "Mystic Birdhat" or npcName == "Cousin Slowhands" then
                 debugPrint(event)
@@ -101,6 +102,18 @@ local function OnEvent(self, event, ...)
             if crateDB == nil then
                 print("Empty War Crate Database - initializing!")
                 crateDB = {}
+            end
+            if settings == nil then
+                print("No War Crate settings - initializing!")
+                settings = {
+                    alert=true,
+                    alert_sound=true,
+                    alert_rw=true,
+                    share_alerts=true,
+                    incoming=true,
+                    incoming_sound=true,
+                    incoming_rw=true
+                }
             end
         end
     elseif event == "PLAYER_LOGOUT" then
