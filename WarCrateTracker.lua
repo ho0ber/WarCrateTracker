@@ -13,6 +13,11 @@ local MSG_NODB = "No previous crate time known for %s"
 local MSG_LABEL = "%i. %s - %s (%ix)"
 local MSG_TIMER = "%s"
 
+-- type|zoneID|servertime
+local ADDON_MSG = "%s|%i|%i|%i|%s"
+
+--sn = strsplit("delimiter", "subject"[, pieces])
+
 local timer = nil
 
 local frequency = {[2274]=1200,[1978]=2700}
@@ -60,7 +65,7 @@ function alert(zoneID, last, current)
     -- print("Checking crates for alerts...")
     local nextTS = nextCrateTS(zoneID, last, current)
     local nextIn = nextCrateTS(zoneID, last, current)-current
-    if nextIn < 180 then
+    if nextIn <= 180 then
         local alertKey = format("%i-%i", zoneID, nextTS)
         if alerted[alertKey] == nil then
             local nextCrateText = nextCrate(zoneID, last, current)
@@ -129,6 +134,41 @@ local function shouldWarn(zoneParentID)
     return not ((zoneParentID == 2274 and not settings["twwWarn"]) or (zoneParentID == 1978 and not settings["dfWarn"]))
 end
 
+local function sendAnnouncement(zoneID, zoneParentID, curTime, announcer)
+    local message = ADDON_MSG:format("ANNOUNCE", zoneID, zoneParentID, curTime, announcer)
+    print("sending:",message)
+    ChatThrottleLib:SendAddonMessage("NORMAL",  "WarCrateTracker", message, "CHANNEL", "WarCrateTracker");
+end
+
+local function doAnnounce(announcer, zoneID, zoneParentID, ts, player)
+    if crateDB[zoneID] ~= nil then
+        local delta = ts - crateDB[zoneID]
+        if delta < 30 and delta > -30 then
+            print("Ignoring announcement from ", player, "delta is", delta)
+            return
+        end
+    end
+    if shouldAnnounce(zoneParentID) then
+        local zoneName = C_Map.GetMapInfo(zoneID).name
+        local zoneParentName = C_Map.GetMapInfo(zoneParentID).name
+
+        RaidNotice_AddMessage(RaidWarningFrame,MSG_CRATE_WARN:format(zoneName, zoneParentName),ChatTypeInfo["RAID_WARNING"]);
+        PlaySoundFile("Interface\\AddOns\\WarCrateTracker\\shipswhistle.ogg", "Master")
+        
+        print(MSG_CRATE:format(announcer, zoneName, zoneParentName, player))
+
+        local lastTime = crateDB[zoneID]
+        if lastTime ~= nil then
+            local nc = nextCrate(zoneID, lastTime, ts)
+            local stale = lastCrateStaleness(zoneID, lastTime, ts)
+            print(MSG_LAST:format(zoneParentName, zoneName, ts-lastTime, stale, nc))
+        else
+            print(MSG_NODB:format(zoneName))
+        end
+    end
+    crateDB[zoneID] = ts
+end
+
 local function crateAnnounced(announcer, text)
     local zoneID = C_Map.GetBestMapForUnit("player")
     local zoneName = C_Map.GetMapInfo(zoneID).name
@@ -136,23 +176,26 @@ local function crateAnnounced(announcer, text)
     local zoneParentName = C_Map.GetMapInfo(zoneParentID).name
     local player = UnitName("player")
     local curTime = GetServerTime()
-    local lastTime = crateDB[zoneID]
+    
 
-    if shouldAnnounce(zoneParentID) then
-        RaidNotice_AddMessage(RaidWarningFrame,MSG_CRATE_WARN:format(zoneName, zoneParentName),ChatTypeInfo["RAID_WARNING"]);
-        PlaySoundFile("Interface\\AddOns\\WarCrateTracker\\shipswhistle.ogg", "Master")
+    sendAnnouncement(zoneID, zoneParentID, curTime, announcer)
+    doAnnounce(announcer, zoneID, zoneParentID, curTime, player)
+    -- if shouldAnnounce(zoneParentID) then
+    --     RaidNotice_AddMessage(RaidWarningFrame,MSG_CRATE_WARN:format(zoneName, zoneParentName),ChatTypeInfo["RAID_WARNING"]);
+    --     PlaySoundFile("Interface\\AddOns\\WarCrateTracker\\shipswhistle.ogg", "Master")
         
-        print(MSG_CRATE:format(announcer, zoneName, zoneParentName, player))
-        if lastTime ~= nil then
-            local nc = nextCrate(zoneID, lastTime, curTime)
-            local stale = lastCrateStaleness(zoneID, lastTime, curTime)
-            print(MSG_LAST:format(zoneParentName, zoneName, curTime-lastTime, stale, nc))
-        else
-            print(MSG_NODB:format(zoneName))
-        end
-    end
-    crateDB[zoneID] = curTime
+    --     print(MSG_CRATE:format(announcer, zoneName, zoneParentName, player))
+    --     if lastTime ~= nil then
+    --         local nc = nextCrate(zoneID, lastTime, curTime)
+    --         local stale = lastCrateStaleness(zoneID, lastTime, curTime)
+    --         print(MSG_LAST:format(zoneParentName, zoneName, curTime-lastTime, stale, nc))
+    --     else
+    --         print(MSG_NODB:format(zoneName))
+    --     end
+    -- end
+    -- crateDB[zoneID] = curTime
 end
+
 
 local function configureSettings() 
     local category = Settings.RegisterVerticalLayoutCategory("WarCrateTracker")
@@ -260,6 +303,10 @@ mainFrame:SetScript("OnDragStart", function(self)
 end)
 mainFrame:SetScript("OnDragStop", function(self)
 	self:StopMovingOrSizing()
+    local point, relativeTo, relativePoint, xOfs, yOfs = mainFrame:GetPoint(1)
+    settings["xOfs"] = xOfs
+    settings["yOfs"] = yOfs
+    print(xOfs, yOfs)
 end)
 
 
@@ -273,14 +320,6 @@ mainFrame.timers = mainFrame:CreateFontString(nil, "OVERLAY", "GameFontNormal")
 mainFrame.timers:SetPoint("LEFT", mainFrame.labels, "RIGHT", 5, 0)
 mainFrame.timers:SetText("")
 mainFrame.timers:SetJustifyH("LEFT")
-
--- mainFrame.playerName = mainFrame:CreateFontString(nil, "OVERLAY", "GameFontNormal")
--- mainFrame.playerName:SetPoint("TOPLEFT", mainFrame, "TOPLEFT", 15, -35)
--- mainFrame.playerName:SetText("Character: " .. UnitName("player"))
-
--- mainFrame.totalPlayerKills = mainFrame:CreateFontString(nil, "OVERLAY", "GameFontNormal")
--- mainFrame.totalPlayerKills:SetPoint("TOPLEFT", mainFrame.playerName, "BOTTOMLEFT", 0, -10)
--- mainFrame.totalPlayerKills:SetText("Total Kills: " .. ("10" or "0"))
 
 local function compareZones(z1, z2)
     local curTime = GetServerTime()
@@ -346,7 +385,6 @@ local function checkTimers()
                 local nc = nextCrate(k, v, curTime)
                 alert(k, v, curTime)
             end
-            --print(MSG_LAST:format(parentInfo.name, zoneInfo.name, curTime-v, nc))
         end
     end
     updateFrame()
@@ -374,6 +412,18 @@ local function OnEvent(self, event, ...)
         --         debugPrint(text)
         --         crateAnnounced(npcName, text)
         -- end
+    elseif event == "CHAT_MSG_ADDON" then
+        local prefix, text, channel, sender, target, zoneChannelID, localID, name, instanceID = ...
+        -- print(...)
+        -- print(text)
+        if prefix == "WarCrateTracker" then
+            local zoneID_s, zoneParentID_s, ts_s, announcer = strsplit("|", text)
+            local zoneID = tonumber(zoneID_s)
+            local zoneParentID = tonumber(zoneParentID_s)
+            local ts = tonumber(ts_s)
+            doAnnounce(announcer, zoneID, zoneParentID, ts, sender)
+        end
+
     elseif event == "ADDON_LOADED" then
         local addon = ...
         if addon == "WarCrateTracker" then
@@ -385,16 +435,15 @@ local function OnEvent(self, event, ...)
             if settings == nil then
                 print("Empty War Crate Settings - initializing!")
                 settings = {}
-                -- settings = {
-                --     crate_notify=true,
-                --     crate_sound=true,
-                --     warning_notify=true,
-                --     warning_sound=true,
-                --     sharing=true,
-                -- }
             end
             configureSettings()
             timer = C_Timer.NewTicker(10, checkTimers)
+            if settings["xOfs"] ~= nil and settings["yOfs"] ~= nil then
+                mainFrame:SetPoint("CENTER", UIParent, "CENTER", settings["xOfs"], settings["yOfs"])
+            end
+            if settings["show"] ~= nil and settings["show"] then
+                mainFrame:Show()
+            end
         end
     elseif event == "PLAYER_LOGOUT" then
         print("Logging out...")
@@ -407,6 +456,7 @@ mainFrame:SetScript("OnShow", function()
         timer:Cancel()
         timer = C_Timer.NewTicker(1, checkTimers)
     end
+    settings["show"] = true
 end)
 
 mainFrame:SetScript("OnHide", function()
@@ -415,12 +465,14 @@ mainFrame:SetScript("OnHide", function()
         timer:Cancel()
         timer = C_Timer.NewTicker(10, checkTimers)
     end
+    settings["show"] = false
 end)
 
 
 mainFrame:RegisterEvent("CHAT_MSG_MONSTER_SAY")
-mainFrame:RegisterEvent("ADDON_LOADED");
-mainFrame:RegisterEvent("PLAYER_LOGOUT");
+mainFrame:RegisterEvent("ADDON_LOADED")
+mainFrame:RegisterEvent("PLAYER_LOGOUT")
+mainFrame:RegisterEvent("CHAT_MSG_ADDON")
 mainFrame:SetScript("OnEvent", OnEvent)
 
 
@@ -444,24 +496,5 @@ function SlashCmdList.WCT(msg)
             updateFrame()
             mainFrame:Show()
         end
-
-        -- local curTime = GetServerTime()
-        -- local menuIndex = 1
-        -- print("War crates:")
-        -- for _, k in pairs(sortedZones()) do
-        -- -- for k, v in pairs(crateDB) do
-        --     local v = crateDB[k]
-        --     if v ~= nil then
-        --         local zoneInfo = C_Map.GetMapInfo(k)
-        --         if shouldTrack(zoneInfo.parentMapID) then
-        --             local parentInfo = C_Map.GetMapInfo(zoneInfo.parentMapID)
-        --             local nc = nextCrate(k, v, curTime)
-        --             local stale = lastCrateStaleness(k, v, curTime)
-        --             menu[tostring(menuIndex)] = k
-        --             print(menuIndex, ".", MSG_LAST:format(parentInfo.name, zoneInfo.name, curTime-v, stale, nc))
-        --             menuIndex = menuIndex + 1
-        --         end
-        --     end
-        -- end
     end
 end
