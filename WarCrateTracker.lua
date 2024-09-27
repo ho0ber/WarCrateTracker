@@ -284,7 +284,14 @@ mainFrame.timers:SetJustifyH("LEFT")
 
 local function compareZones(z1, z2)
     local curTime = GetServerTime()
-    return nextCrateTS(z1, crateDB[z1], curTime) < nextCrateTS(z2, crateDB[z2], curTime) 
+    local ts1 = nextCrateTS(z1, crateDB[z1], curTime)
+    local ts2 = nextCrateTS(z2, crateDB[z2], curTime)
+    if ts1 == nil then
+        return false
+    elseif ts2 == nil then
+        return true
+    end
+    return ts1 < ts2
 end
 
 local function sortedZones()
@@ -318,6 +325,9 @@ local function updateFrame()
                 menuIndex = menuIndex + 1
             end
         end
+    end
+    if labelText == "" and timerText == "" then
+        labelText = "No timers found. Please add zones to\ntracking in settings or wait for a drop."
     end
     mainFrame.labels:SetText(labelText)
     mainFrame.timers:SetText(timerText)
