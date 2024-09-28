@@ -22,6 +22,8 @@ local timer = nil
 
 local frequency = {[2274]=1200,[1978]=2700}
 
+local settingsCategoryID = nil
+
 function nextCrateTS(zoneID, last, current)
     local zoneInfo = C_Map.GetMapInfo(zoneID)
     local parentInfo = C_Map.GetMapInfo(zoneInfo.parentMapID)
@@ -285,9 +287,10 @@ local function configureSettings()
 
 
     Settings.RegisterAddOnCategory(category)
+    settingsCategoryID = category:GetID()
 end
 
-local mainFrame = CreateFrame("Frame", "MyAddonMainFrame", UIParent, "BasicFrameTemplateWithInset")
+local mainFrame = CreateFrame("Frame", "WarCrateTracker", UIParent, "BasicFrameTemplateWithInset")
 mainFrame:SetSize(400, 150)
 mainFrame:SetPoint("CENTER", UIParent, "CENTER", 0, 0)
 mainFrame.TitleBg:SetHeight(30)
@@ -309,6 +312,18 @@ mainFrame:SetScript("OnDragStop", function(self)
     print(xOfs, yOfs)
 end)
 
+local settingsButton = CreateFrame("Button", "Settings", mainFrame)
+settingsButton:SetPoint("TOPRIGHT", mainFrame, "TOPRIGHT", -40, -6)
+settingsButton:SetWidth(50)
+settingsButton:SetHeight(10)
+settingsButton:SetText("Settings")
+settingsButton:SetNormalFontObject("GameFontNormalSmall")
+
+settingsButton:SetScript("OnClick", function()
+    if settingsCategoryID ~= nil then
+        Settings.OpenToCategory(settingsCategoryID)
+    end
+end)
 
 
 mainFrame.labels = mainFrame:CreateFontString(nil, "OVERLAY", "GameFontNormal")
@@ -437,6 +452,8 @@ local function OnEvent(self, event, ...)
                 settings = {}
             end
             configureSettings()
+
+
             timer = C_Timer.NewTicker(10, checkTimers)
             if settings["xOfs"] ~= nil and settings["yOfs"] ~= nil then
                 mainFrame:SetPoint("CENTER", UIParent, "CENTER", settings["xOfs"], settings["yOfs"])
