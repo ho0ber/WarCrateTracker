@@ -7,6 +7,7 @@ local menu = {}
 local MSG_CRATE_WARN = "War Crate in %s - %s"
 local MSG_CRATE_ALERT = "War Crate in %s - %s in %s"
 local MSG_CRATE = "%s just announced a war crate in %s - %s (heard by %s)"
+local MSG_CRATE_SPOT = "War crate in %s - %s (spotted by %s)"
 local MSG_LAST = "%s - %s seen %is ago (%ix)\n  next in %s"
 local MSG_NODB = "No previous crate time known for %s"
 
@@ -14,7 +15,7 @@ local MSG_LABEL = "%i. %s - %s (%ix)"
 local MSG_TIMER = "%s"
 
 -- type|zoneID|servertime
-local ADDON_MSG = "%s|%i|%i|%i|%s"
+local ADDON_MSG = "%s~%i~%i~%i~%s"
 
 --sn = strsplit("delimiter", "subject"[, pieces])
 
@@ -142,6 +143,13 @@ local function sendAnnouncement(zoneID, zoneParentID, curTime, announcer)
     ChatThrottleLib:SendAddonMessage("NORMAL",  "WarCrateTracker", message, "CHANNEL", "WarCrateTracker");
 end
 
+local function sendSpot(zoneID, zoneParentID, curTime, method)
+    local message = ADDON_MSG:format("SPOT", zoneID, zoneParentID, curTime, method)
+    print("sending:",message)
+    ChatThrottleLib:SendAddonMessage("NORMAL",  "WarCrateTracker", message, "CHANNEL", "WarCrateTracker");
+end
+
+
 local function doAnnounce(announcer, zoneID, zoneParentID, ts, player)
     if crateDB[zoneID] ~= nil then
         local delta = ts - crateDB[zoneID]
@@ -157,7 +165,11 @@ local function doAnnounce(announcer, zoneID, zoneParentID, ts, player)
         RaidNotice_AddMessage(RaidWarningFrame,MSG_CRATE_WARN:format(zoneName, zoneParentName),ChatTypeInfo["RAID_WARNING"]);
         PlaySoundFile("Interface\\AddOns\\WarCrateTracker\\shipswhistle.ogg", "Master")
         
-        print(MSG_CRATE:format(announcer, zoneName, zoneParentName, player))
+        if announcer == nil then
+            print(MSG_CRATE_SPOT:format(zoneName, zoneParentName, player))
+        else
+            print(MSG_CRATE:format(announcer, zoneName, zoneParentName, player))
+        end
 
         local lastTime = crateDB[zoneID]
         if lastTime ~= nil then
@@ -171,6 +183,7 @@ local function doAnnounce(announcer, zoneID, zoneParentID, ts, player)
     crateDB[zoneID] = ts
 end
 
+
 local function crateAnnounced(announcer, text)
     local zoneID = C_Map.GetBestMapForUnit("player")
     local zoneName = C_Map.GetMapInfo(zoneID).name
@@ -182,20 +195,22 @@ local function crateAnnounced(announcer, text)
 
     sendAnnouncement(zoneID, zoneParentID, curTime, announcer)
     doAnnounce(announcer, zoneID, zoneParentID, curTime, player)
-    -- if shouldAnnounce(zoneParentID) then
-    --     RaidNotice_AddMessage(RaidWarningFrame,MSG_CRATE_WARN:format(zoneName, zoneParentName),ChatTypeInfo["RAID_WARNING"]);
-    --     PlaySoundFile("Interface\\AddOns\\WarCrateTracker\\shipswhistle.ogg", "Master")
-        
-    --     print(MSG_CRATE:format(announcer, zoneName, zoneParentName, player))
-    --     if lastTime ~= nil then
-    --         local nc = nextCrate(zoneID, lastTime, curTime)
-    --         local stale = lastCrateStaleness(zoneID, lastTime, curTime)
-    --         print(MSG_LAST:format(zoneParentName, zoneName, curTime-lastTime, stale, nc))
-    --     else
-    --         print(MSG_NODB:format(zoneName))
-    --     end
-    -- end
-    -- crateDB[zoneID] = curTime
+end
+
+local function crateSpotted(method)
+    local zoneID = C_Map.GetBestMapForUnit("player")
+    local zoneName = C_Map.GetMapInfo(zoneID).name
+    local zoneParentID = C_Map.GetMapInfo(zoneID).parentMapID
+    local zoneParentName = C_Map.GetMapInfo(zoneParentID).name
+    local player = UnitName("player")
+    local curTime = GetServerTime()
+
+    print("Crate spotted in", zoneName, "- deciding if should be announced")
+    
+    if crateDB[zoneID] == nil or (curTime - crateDB[zoneID]) > 180 then
+        sendSpot(zoneID, zoneParentID, curTime, method)
+        doAnnounce(nil, zoneID, zoneParentID, curTime, player)
+    end
 end
 
 
@@ -427,18 +442,47 @@ local function OnEvent(self, event, ...)
         --         debugPrint(text)
         --         crateAnnounced(npcName, text)
         -- end
+    elseif event == "PLAYER_TARGET_CHANGED" then
+        local name, realm = UnitName("target")
+        if name == "War Supply Crate" then
+            crateSpotted("target")
+        end
     elseif event == "CHAT_MSG_ADDON" then
         local prefix, text, channel, sender, target, zoneChannelID, localID, name, instanceID = ...
         -- print(...)
         -- print(text)
         if prefix == "WarCrateTracker" then
-            local zoneID_s, zoneParentID_s, ts_s, announcer = strsplit("|", text)
+            local zoneID_s, zoneParentID_s, ts_s, announcer = strsplit("~", text)
             local zoneID = tonumber(zoneID_s)
             local zoneParentID = tonumber(zoneParentID_s)
             local ts = tonumber(ts_s)
             doAnnounce(announcer, zoneID, zoneParentID, ts, sender)
         end
-
+    elseif event == "SUPER_TRACKING_CHANGED" then
+        local trackableType, trackableID = C_SuperTrack.GetSuperTrackedContent()
+        local questID = C_SuperTrack.GetSuperTrackedQuestID()
+        local pinType, pinID = C_SuperTrack.GetSuperTrackedMapPin()
+        local vignetteGUID = C_SuperTrack.GetSuperTrackedVignette()
+        local vignetteInfo = nil
+        local name = nil
+        local vignetteID = nil
+        if vignetteGUID ~= nil then
+            vignetteInfo = C_VignetteInfo.GetVignetteInfo(vignetteGUID)
+            name = vignetteInfo.name
+            vignetteID = vignetteInfo.vignetteID
+            print("vignetteInfo.type=", vignetteInfo.type)
+            print("vignetteInfo.iconWidgetSet=", vignetteInfo.iconWidgetSet)
+            print("vignetteInfo.tooltipWidgetSet=", vignetteInfo.tooltipWidgetSet)
+            print("vignetteInfo.atlasName=", vignetteInfo.atlasName)
+        end
+        print("tracking changed", trackableType, trackableID, questID, pinType, pinID, vignetteGUID, vignetteInfo, name, vignetteID)
+        if name ~= nil then
+            if name == "War Supply Crate" then
+                crateSpotted("tracking")
+            end
+        end
+    elseif event == "USER_WAYPOINT_UPDATED" then
+        print("USER_WAYPOINT_UPDATED")
     elseif event == "ADDON_LOADED" then
         local addon = ...
         if addon == "WarCrateTracker" then
@@ -490,6 +534,9 @@ mainFrame:RegisterEvent("CHAT_MSG_MONSTER_SAY")
 mainFrame:RegisterEvent("ADDON_LOADED")
 mainFrame:RegisterEvent("PLAYER_LOGOUT")
 mainFrame:RegisterEvent("CHAT_MSG_ADDON")
+mainFrame:RegisterEvent("PLAYER_TARGET_CHANGED")
+mainFrame:RegisterEvent("SUPER_TRACKING_CHANGED")
+mainFrame:RegisterEvent("USER_WAYPOINT_UPDATED")
 mainFrame:SetScript("OnEvent", OnEvent)
 
 
@@ -506,6 +553,8 @@ function SlashCmdList.WCT(msg)
     elseif starts_with(msg, "del ") then
         local arg = msg:match("%w+$")
         crateDB[menu[arg]] = nil
+    elseif msg == "spot" then
+        crateSpotted("manual")
     else
         if mainFrame:IsShown() then
             mainFrame:Hide()
