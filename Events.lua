@@ -30,6 +30,7 @@ local function updateFrame()
     local h = NS.mainFrame.labels:GetStringHeight()
     NS.mainFrame:SetSize(w+35, h+50)
 end
+NS.updateFrame = updateFrame
 
 local function checkTimers()
     local curTime = GetServerTime()
