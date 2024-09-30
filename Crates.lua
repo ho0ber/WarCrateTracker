@@ -1,5 +1,8 @@
 local addonName, NS = ...
 
+-- Add a simple function that returns a table with:
+---- zoneID, zoneParentID, zoneName, zoneParentName, crateTS, nextCrateTS, crateStaleCount, certainty (was it a spot or an announce)
+
 local function shouldAnnounce(zoneParentID)
     return not ((zoneParentID == 2274 and not settings["twwAnnounce"]) or (zoneParentID == 1978 and not settings["dfAnnounce"]))
 end
@@ -84,7 +87,7 @@ local function crateSpotted(method)
     local player = UnitName("player")
     local curTime = GetServerTime()
 
-    print("Crate spotted in", zoneName, "- deciding if should be announced")
+    print("Crate spotted in", zoneName, "via method", method, "- deciding if should be announced")
     
     if crateDB[zoneID] == nil or (curTime - crateDB[zoneID]) > 180 then
         sendSpot(zoneID, zoneParentID, curTime, method)

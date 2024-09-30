@@ -69,11 +69,6 @@ local function OnEvent(self, event, ...)
         --         NS.debugPrint(text)
         --         crateAnnounced(npcName, text)
         -- end
-    elseif event == "PLAYER_TARGET_CHANGED" then
-        local name, realm = UnitName("target")
-        if name == "War Supply Crate" then
-            NS.crateSpotted("target")
-        end
     elseif event == "CHAT_MSG_ADDON" then
         local prefix, text, channel, sender, target, zoneChannelID, localID, name, instanceID = ...
         -- print(...)
@@ -85,6 +80,11 @@ local function OnEvent(self, event, ...)
             local ts = tonumber(ts_s)
             NS.doAnnounce(announcer, zoneID, zoneParentID, ts, sender)
         end
+    elseif event == "PLAYER_TARGET_CHANGED" then
+        local name, realm = UnitName("target")
+        if name == "War Supply Crate" then
+            NS.crateSpotted("target")
+        end
     elseif event == "SUPER_TRACKING_CHANGED" then
         local trackableType, trackableID = C_SuperTrack.GetSuperTrackedContent()
         local questID = C_SuperTrack.GetSuperTrackedQuestID()
@@ -94,20 +94,29 @@ local function OnEvent(self, event, ...)
         local name = nil
         local vignetteID = nil
         if vignetteGUID ~= nil then
-            vignetteInfo = C_VignetteInfo.GetVignetteInfo(vignetteGUID)
-            name = vignetteInfo.name
-            vignetteID = vignetteInfo.vignetteID
-            print("vignetteInfo.type=", vignetteInfo.type)
-            print("vignetteInfo.iconWidgetSet=", vignetteInfo.iconWidgetSet)
-            print("vignetteInfo.tooltipWidgetSet=", vignetteInfo.tooltipWidgetSet)
-            print("vignetteInfo.atlasName=", vignetteInfo.atlasName)
-        end
-        print("tracking changed", trackableType, trackableID, questID, pinType, pinID, vignetteGUID, vignetteInfo, name, vignetteID)
-        if name ~= nil then
-            if name == "War Supply Crate" then
-                NS.crateSpotted("tracking")
+            local vignetteInfo = C_VignetteInfo.GetVignetteInfo(vignetteGUID)
+            if vignetteInfo ~= nil then
+                -- vignetteID = vignetteInfo.vignetteID
+                print("vignetteInfo.name=", vignetteInfo.name)
+                -- NS.debugPrint("vignetteInfo.type=", vignetteInfo.type)
+                -- NS.debugPrint("vignetteInfo.iconWidgetSet=", vignetteInfo.iconWidgetSet)
+                -- NS.debugPrint("vignetteInfo.tooltipWidgetSet=", vignetteInfo.tooltipWidgetSet)
+                print("vignetteInfo.atlasName=", vignetteInfo.atlasName)
+                if vignetteInfo.name == "War Supply Crate" then
+                    if vignetteInfo.atlasName == "3689" then -- plane
+                        NS.crateSpotted("track-plane")
+                    elseif vignetteInfo.atlasName == "2967" then -- falling crate
+                        NS.crateSpotted("track-parachute")
+                    elseif vignetteInfo.atlasName == "6066" then -- unclaimed crate on ground
+                        NS.crateSpotted("track-unclaimed")
+                    elseif vignetteInfo.atlasName == "2967" then -- claimed faction crate
+                        NS.crateSpotted("track-claimed")
+                    end
+                end
             end
         end
+        -- NS.debugPrint("tracking changed", trackableType, trackableID, questID, pinType, pinID, vignetteGUID, vignetteInfo, name, vignetteID)
+
     elseif event == "USER_WAYPOINT_UPDATED" then
         print("USER_WAYPOINT_UPDATED")
     elseif event == "ADDON_LOADED" then

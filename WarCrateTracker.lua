@@ -10,7 +10,7 @@ NS.settingsCategoryID = nil
 NS.frequency = {[2274]=1200,[1978]=2700}
 
 local function debugPrint(message)
-    if debug then
+    if NS.debug then
         print(message)
     end
 end
