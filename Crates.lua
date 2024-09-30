@@ -124,6 +124,10 @@ NS.sortedZones = sortedZones
 function alert(zoneID, last, current)
     -- print("Checking crates for alerts...")
     local nextTS = NS.nextCrateTS(zoneID, last, current)
+    if nextTS == nil then
+        print("nexTS was nil???", zoneID, last, current)
+        return
+    end
     local nextIn = NS.nextCrateTS(zoneID, last, current)-current
     if nextIn <= 180 then
         local alertKey = format("%i-%i", zoneID, nextTS)

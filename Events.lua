@@ -98,6 +98,29 @@ local function OnEvent(self, event, ...)
                 end
             end
         end
+    elseif event == "VIGNETTES_UPDATED" then
+        -- print("VIGNETTES_UPDATED")
+        local vignetteGUIDs = C_VignetteInfo.GetVignettes()
+        for k,v in pairs(vignetteGUIDs) do
+            local vignetteInfo = C_VignetteInfo.GetVignetteInfo(v)
+            -- print(k,v)
+            -- if vignetteInfo ~= nil and vignetteInfo.atlasName ~= "VignetteKillElite" then
+                -- print("vignetteInfo.name=", vignetteInfo.name)
+                -- print("vignetteInfo.vignetteID=", vignetteInfo.vignetteID)
+                -- print("vignetteInfo.atlasName=", vignetteInfo.atlasName)
+            if vignetteInfo ~= nil and vignetteInfo.name == "War Supply Crate" then
+                if vignetteInfo.vignetteID == 3689 then -- plane
+                    NS.crateSpotted("minimap-plane")
+                elseif vignetteInfo.vignetteID == 2967 then -- falling crate
+                    NS.crateSpotted("minimap-parachute")
+                elseif vignetteInfo.vignetteID == 6066 then -- unclaimed crate on ground
+                    NS.crateSpotted("minimap-unclaimed")
+                elseif vignetteInfo.vignetteID == 6068 then -- claimed faction crate
+                    NS.crateSpotted("minimap-claimed")
+                end
+            end
+            -- end
+        end
     elseif event == "ADDON_LOADED" then
         local addon = ...
         if addon == "WarCrateTracker" then
@@ -149,4 +172,5 @@ NS.mainFrame:RegisterEvent("PLAYER_LOGOUT")
 NS.mainFrame:RegisterEvent("CHAT_MSG_ADDON")
 NS.mainFrame:RegisterEvent("PLAYER_TARGET_CHANGED")
 NS.mainFrame:RegisterEvent("SUPER_TRACKING_CHANGED")
+NS.mainFrame:RegisterEvent("VIGNETTES_UPDATED")
 NS.mainFrame:SetScript("OnEvent", OnEvent)
