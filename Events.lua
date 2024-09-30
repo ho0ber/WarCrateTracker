@@ -63,16 +63,8 @@ local function OnEvent(self, event, ...)
                 NS.crateAnnounced(npcName, text)
             end
         end
-        -- if npcName == "Mystic Birdhat" or npcName == "Cousin Slowhands" then
-        --         NS.debugPrint(event)
-        --         NS.debugPrint(npcName)
-        --         NS.debugPrint(text)
-        --         crateAnnounced(npcName, text)
-        -- end
     elseif event == "CHAT_MSG_ADDON" then
         local prefix, text, channel, sender, target, zoneChannelID, localID, name, instanceID = ...
-        -- print(...)
-        -- print(text)
         if prefix == "WarCrateTracker" then
             local zoneID_s, zoneParentID_s, ts_s, announcer = strsplit("~", text)
             local zoneID = tonumber(zoneID_s)
@@ -86,39 +78,26 @@ local function OnEvent(self, event, ...)
             NS.crateSpotted("target")
         end
     elseif event == "SUPER_TRACKING_CHANGED" then
-        local trackableType, trackableID = C_SuperTrack.GetSuperTrackedContent()
-        local questID = C_SuperTrack.GetSuperTrackedQuestID()
-        local pinType, pinID = C_SuperTrack.GetSuperTrackedMapPin()
         local vignetteGUID = C_SuperTrack.GetSuperTrackedVignette()
-        local vignetteInfo = nil
-        local name = nil
-        local vignetteID = nil
         if vignetteGUID ~= nil then
             local vignetteInfo = C_VignetteInfo.GetVignetteInfo(vignetteGUID)
             if vignetteInfo ~= nil then
-                -- vignetteID = vignetteInfo.vignetteID
                 print("vignetteInfo.name=", vignetteInfo.name)
-                -- NS.debugPrint("vignetteInfo.type=", vignetteInfo.type)
-                -- NS.debugPrint("vignetteInfo.iconWidgetSet=", vignetteInfo.iconWidgetSet)
-                -- NS.debugPrint("vignetteInfo.tooltipWidgetSet=", vignetteInfo.tooltipWidgetSet)
+                print("vignetteInfo.vignetteID=", vignetteInfo.vignetteID)
                 print("vignetteInfo.atlasName=", vignetteInfo.atlasName)
                 if vignetteInfo.name == "War Supply Crate" then
-                    if vignetteInfo.atlasName == "3689" then -- plane
+                    if vignetteInfo.vignetteID == 3689 then -- plane
                         NS.crateSpotted("track-plane")
-                    elseif vignetteInfo.atlasName == "2967" then -- falling crate
+                    elseif vignetteInfo.vignetteID == 2967 then -- falling crate
                         NS.crateSpotted("track-parachute")
-                    elseif vignetteInfo.atlasName == "6066" then -- unclaimed crate on ground
+                    elseif vignetteInfo.vignetteID == 6066 then -- unclaimed crate on ground
                         NS.crateSpotted("track-unclaimed")
-                    elseif vignetteInfo.atlasName == "2967" then -- claimed faction crate
+                    elseif vignetteInfo.vignetteID == 6068 then -- claimed faction crate
                         NS.crateSpotted("track-claimed")
                     end
                 end
             end
         end
-        -- NS.debugPrint("tracking changed", trackableType, trackableID, questID, pinType, pinID, vignetteGUID, vignetteInfo, name, vignetteID)
-
-    elseif event == "USER_WAYPOINT_UPDATED" then
-        print("USER_WAYPOINT_UPDATED")
     elseif event == "ADDON_LOADED" then
         local addon = ...
         if addon == "WarCrateTracker" then
@@ -170,5 +149,4 @@ NS.mainFrame:RegisterEvent("PLAYER_LOGOUT")
 NS.mainFrame:RegisterEvent("CHAT_MSG_ADDON")
 NS.mainFrame:RegisterEvent("PLAYER_TARGET_CHANGED")
 NS.mainFrame:RegisterEvent("SUPER_TRACKING_CHANGED")
-NS.mainFrame:RegisterEvent("USER_WAYPOINT_UPDATED")
 NS.mainFrame:SetScript("OnEvent", OnEvent)
