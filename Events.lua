@@ -102,21 +102,25 @@ local function OnEvent(self, event, ...)
         -- print("VIGNETTES_UPDATED")
         local vignetteGUIDs = C_VignetteInfo.GetVignettes()
         for k,v in pairs(vignetteGUIDs) do
-            local vignetteInfo = C_VignetteInfo.GetVignetteInfo(v)
-            -- print(k,v)
-            -- if vignetteInfo ~= nil and vignetteInfo.atlasName ~= "VignetteKillElite" then
-                -- print("vignetteInfo.name=", vignetteInfo.name)
-                -- print("vignetteInfo.vignetteID=", vignetteInfo.vignetteID)
-                -- print("vignetteInfo.atlasName=", vignetteInfo.atlasName)
-            if vignetteInfo ~= nil and vignetteInfo.name == "War Supply Crate" then
-                if vignetteInfo.vignetteID == 3689 then -- plane
-                    NS.crateSpotted("minimap-plane")
-                elseif vignetteInfo.vignetteID == 2967 then -- falling crate
-                    NS.crateSpotted("minimap-parachute")
-                elseif vignetteInfo.vignetteID == 6066 then -- unclaimed crate on ground
-                    NS.crateSpotted("minimap-unclaimed")
-                elseif vignetteInfo.vignetteID == 6068 then -- claimed faction crate
-                    NS.crateSpotted("minimap-claimed")
+            if NS.seenVignetteGUIDs[k] ~= true then
+                NS.seenVignetteGUIDs[k] = true
+                -- need to find some way to garbage collect this ever-growing set
+                local vignetteInfo = C_VignetteInfo.GetVignetteInfo(v)
+                -- print(k,v)
+                -- if vignetteInfo ~= nil and vignetteInfo.atlasName ~= "VignetteKillElite" then
+                    -- print("vignetteInfo.name=", vignetteInfo.name)
+                    -- print("vignetteInfo.vignetteID=", vignetteInfo.vignetteID)
+                    -- print("vignetteInfo.atlasName=", vignetteInfo.atlasName)
+                if vignetteInfo ~= nil and vignetteInfo.name == "War Supply Crate" then
+                    if vignetteInfo.vignetteID == 3689 then -- plane
+                        NS.crateSpotted("minimap-plane")
+                    elseif vignetteInfo.vignetteID == 2967 then -- falling crate
+                        NS.crateSpotted("minimap-parachute")
+                    elseif vignetteInfo.vignetteID == 6066 then -- unclaimed crate on ground
+                        NS.crateSpotted("minimap-unclaimed")
+                    elseif vignetteInfo.vignetteID == 6068 then -- claimed faction crate
+                        NS.crateSpotted("minimap-claimed")
+                    end
                 end
             end
             -- end
