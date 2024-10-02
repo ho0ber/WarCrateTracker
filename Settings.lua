@@ -1,6 +1,16 @@
 local addonName, NS = ...
 
+local function updateMuteBounty()
+    if settings.muteBounty ~= true then
+        UnmuteSoundFile(53225)
+    else
+        MuteSoundFile(53225)
+    end
+end
+
 local function configureSettings() 
+    updateMuteBounty() --so when we load the addon it applies the setting
+
     local category = Settings.RegisterVerticalLayoutCategory("WarCrateTracker")
     
     do
@@ -86,6 +96,21 @@ local function configureSettings()
         Settings.CreateCheckbox(category, setting, tooltip)
     end
 
+
+    do
+        local variable = "muteBounty"
+        local name = "Mute Bounty Music"
+        local tooltip = "Prevents the bounty music from blasting at you when you gain a bounty"
+        local variableKey = "muteBounty"
+        local variableTbl = settings
+        local defaultValue = false
+    
+        local setting = Settings.RegisterAddOnSetting(category, variable, variableKey, variableTbl, type(defaultValue), name, defaultValue)
+        setting:SetValueChangedCallback(updateMuteBounty)
+        Settings.CreateCheckbox(category, setting, tooltip)
+    end
+
+    
 
     Settings.RegisterAddOnCategory(category)
     NS.settingsCategoryID = category:GetID()

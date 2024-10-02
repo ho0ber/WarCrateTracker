@@ -9,12 +9,15 @@ function SlashCmdList.WCT(msg)
 
     if msg == "clear" then
         crateDB = {}
-        print("Cleared crate DB")
+        print("Cleared crate DB.")
     elseif starts_with(msg, "del ") then
         local arg = msg:match("%w+$")
         crateDB[NS.menu[arg]] = nil
     elseif msg == "spot" then
         NS.crateSpotted("manual")
+    elseif msg == "debug" then
+        NS.debug = not NS.debug
+        print("Debug set to", NS.debug)
     else
         if NS.mainFrame:IsShown() then
             NS.mainFrame:Hide()

@@ -31,7 +31,7 @@ function nextCrateTS(zoneID, last, current)
         local nextCrateTS = last+(crateCount+1)*freq
         return nextCrateTS
     else
-        print("didn't find a frequency for", zoneInfo.parentMapID)
+        NS.debugPrint("didn't find a frequency for", zoneInfo.parentMapID)
         return 0
     end
 end

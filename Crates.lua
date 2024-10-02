@@ -20,23 +20,24 @@ NS.shouldWarn = shouldWarn
 
 local function sendAnnouncement(zoneID, zoneParentID, curTime, announcer)
     local message = NS.ADDON_MSG:format("ANNOUNCE", zoneID, zoneParentID, curTime, announcer)
-    print("sending:",message)
-    ChatThrottleLib:SendAddonMessage("NORMAL",  "WarCrateTracker", message, "CHANNEL", "WarCrateTracker");
+    NS.debugPrint("sending:",message)
+    ChatThrottleLib:SendAddonMessage("NORMAL",  "WarCrateTracker", message, "GUILD") --"CHANNEL", "WarCrateTracker");
 end
 NS.sendAnnouncement = sendAnnouncement
 
 local function sendSpot(zoneID, zoneParentID, curTime, method)
     local message = NS.ADDON_MSG:format("SPOT", zoneID, zoneParentID, curTime, method)
-    print("sending:",message)
-    ChatThrottleLib:SendAddonMessage("NORMAL",  "WarCrateTracker", message, "CHANNEL", "WarCrateTracker");
+    NS.debugPrint("sending:",message)
+    ChatThrottleLib:SendAddonMessage("NORMAL",  "WarCrateTracker", message, "GUILD") --"CHANNEL", "WarCrateTracker");
 end
 NS.sendSpot = sendSpot
 
 local function doAnnounce(announcer, zoneID, zoneParentID, ts, player)
+    NS.debugPrint(announcer, zoneID, zoneParentID, ts, player)
     if crateDB[zoneID] ~= nil then
         local delta = ts - crateDB[zoneID]
-        if delta < 30 and delta > -30 then
-            print("Ignoring announcement from ", player, "delta is", delta)
+        if delta < 180 and delta > -180 then
+            NS.debugPrint("Ignoring announcement from ", player, "delta is", delta)
             return
         end
     end
@@ -53,14 +54,14 @@ local function doAnnounce(announcer, zoneID, zoneParentID, ts, player)
             print(NS.MSG_CRATE:format(announcer, zoneName, zoneParentName, player))
         end
 
-        local lastTime = crateDB[zoneID]
-        if lastTime ~= nil then
-            local nc = NS.nextCrate(zoneID, lastTime, ts)
-            local stale = NS.lastCrateStaleness(zoneID, lastTime, ts)
-            print(NS.MSG_LAST:format(zoneParentName, zoneName, ts-lastTime, stale, nc))
-        else
-            print(NS.MSG_NODB:format(zoneName))
-        end
+        -- local lastTime = crateDB[zoneID]
+        -- if lastTime ~= nil then
+        --     local nc = NS.nextCrate(zoneID, lastTime, ts)
+        --     local stale = NS.lastCrateStaleness(zoneID, lastTime, ts)
+        --     print(NS.MSG_LAST:format(zoneParentName, zoneName, ts-lastTime, stale, nc))
+        -- else
+        --     print(NS.MSG_NODB:format(zoneName))
+        -- end
     end
     crateDB[zoneID] = ts
 end
@@ -87,7 +88,7 @@ local function crateSpotted(method)
     local player = UnitName("player")
     local curTime = GetServerTime()
 
-    print("Crate spotted in", zoneName, "via method", method, "- deciding if should be announced")
+    NS.debugPrint("Crate spotted in", zoneName, "via method", method, "- deciding if should be announced")
     
     if crateDB[zoneID] == nil or (curTime - crateDB[zoneID]) > 180 then
         sendSpot(zoneID, zoneParentID, curTime, method)
@@ -125,7 +126,7 @@ function alert(zoneID, last, current)
     -- print("Checking crates for alerts...")
     local nextTS = NS.nextCrateTS(zoneID, last, current)
     if nextTS == nil then
-        print("nexTS was nil???", zoneID, last, current)
+        NS.debugPrint("nexTS was nil???", zoneID, last, current)
         return
     end
     local nextIn = NS.nextCrateTS(zoneID, last, current)-current

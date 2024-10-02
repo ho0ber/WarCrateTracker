@@ -66,11 +66,15 @@ local function OnEvent(self, event, ...)
     elseif event == "CHAT_MSG_ADDON" then
         local prefix, text, channel, sender, target, zoneChannelID, localID, name, instanceID = ...
         if prefix == "WarCrateTracker" then
-            local zoneID_s, zoneParentID_s, ts_s, announcer = strsplit("~", text)
+            local spotType, zoneID_s, zoneParentID_s, ts_s, announcer = strsplit("~", text)
             local zoneID = tonumber(zoneID_s)
             local zoneParentID = tonumber(zoneParentID_s)
             local ts = tonumber(ts_s)
-            NS.doAnnounce(announcer, zoneID, zoneParentID, ts, sender)
+            if spotType == "ANNOUNCE" then
+                NS.doAnnounce(announcer, zoneID, zoneParentID, ts, sender)
+            else
+                NS.doAnnounce(nil, zoneID, zoneParentID, ts, sender)
+            end
         end
     elseif event == "PLAYER_TARGET_CHANGED" then
         local name, realm = UnitName("target")
@@ -82,9 +86,9 @@ local function OnEvent(self, event, ...)
         if vignetteGUID ~= nil then
             local vignetteInfo = C_VignetteInfo.GetVignetteInfo(vignetteGUID)
             if vignetteInfo ~= nil then
-                print("vignetteInfo.name=", vignetteInfo.name)
-                print("vignetteInfo.vignetteID=", vignetteInfo.vignetteID)
-                print("vignetteInfo.atlasName=", vignetteInfo.atlasName)
+                NS.debugPrint("vignetteInfo.name=", vignetteInfo.name)
+                NS.debugPrint("vignetteInfo.vignetteID=", vignetteInfo.vignetteID)
+                NS.debugPrint("vignetteInfo.atlasName=", vignetteInfo.atlasName)
                 if vignetteInfo.name == "War Supply Crate" then
                     if vignetteInfo.vignetteID == 3689 then -- plane
                         NS.crateSpotted("track-plane")
@@ -99,18 +103,18 @@ local function OnEvent(self, event, ...)
             end
         end
     elseif event == "VIGNETTES_UPDATED" then
-        -- print("VIGNETTES_UPDATED")
+        -- NS.debugPrint("VIGNETTES_UPDATED")
         local vignetteGUIDs = C_VignetteInfo.GetVignettes()
         for k,v in pairs(vignetteGUIDs) do
             if NS.seenVignetteGUIDs[k] ~= true then
                 NS.seenVignetteGUIDs[k] = true
                 -- need to find some way to garbage collect this ever-growing set
                 local vignetteInfo = C_VignetteInfo.GetVignetteInfo(v)
-                -- print(k,v)
+                -- NS.debugPrint(k,v)
                 -- if vignetteInfo ~= nil and vignetteInfo.atlasName ~= "VignetteKillElite" then
-                    -- print("vignetteInfo.name=", vignetteInfo.name)
-                    -- print("vignetteInfo.vignetteID=", vignetteInfo.vignetteID)
-                    -- print("vignetteInfo.atlasName=", vignetteInfo.atlasName)
+                    -- NS.debugPrint("vignetteInfo.name=", vignetteInfo.name)
+                    -- NS.debugPrint("vignetteInfo.vignetteID=", vignetteInfo.vignetteID)
+                    -- NS.debugPrint("vignetteInfo.atlasName=", vignetteInfo.atlasName)
                 if vignetteInfo ~= nil and vignetteInfo.name == "War Supply Crate" then
                     if vignetteInfo.vignetteID == 3689 then -- plane
                         NS.crateSpotted("minimap-plane")
@@ -130,11 +134,11 @@ local function OnEvent(self, event, ...)
         if addon == "WarCrateTracker" then
             print("WarCrateTracker loaded!")
             if crateDB == nil then
-                print("Empty War Crate Database - initializing!")
+                NS.debugPrint("Empty War Crate Database - initializing!")
                 crateDB = {}
             end
             if settings == nil then
-                print("Empty War Crate Settings - initializing!")
+                NS.debugPrint("Empty War Crate Settings - initializing!")
                 settings = {}
             end
             NS.configureSettings()
@@ -148,7 +152,7 @@ local function OnEvent(self, event, ...)
             end
         end
     elseif event == "PLAYER_LOGOUT" then
-        print("Logging out...")
+        NS.debugPrint("Logging out...")
     end
 end
 

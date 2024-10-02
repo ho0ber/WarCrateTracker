@@ -19,7 +19,7 @@ NS.mainFrame:SetScript("OnDragStop", function(self)
     local point, relativeTo, relativePoint, xOfs, yOfs = NS.mainFrame:GetPoint(1)
     settings["xOfs"] = xOfs
     settings["yOfs"] = yOfs
-    print(xOfs, yOfs)
+    NS.debugPrint(xOfs, yOfs)
 end)
 
 NS.settingsButton = CreateFrame("Button", "Settings", NS.mainFrame)
