@@ -133,6 +133,7 @@ local function OnEvent(self, event, ...)
         local addon = ...
         if addon == "WarCrateTracker" then
             print("WarCrateTracker loaded!")
+            C_ChatInfo.RegisterAddonMessagePrefix("WarCrateTracker")
             if crateDB == nil then
                 NS.debugPrint("Empty War Crate Database - initializing!")
                 crateDB = {}
