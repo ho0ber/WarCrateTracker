@@ -7,3 +7,9 @@
 
 ChatThrottleLib/ChatThrottleLib.xml
 WarCrateTracker.lua
+Settings.lua
+Time.lua
+Crates.lua
+Frames.lua
+Events.lua
+Commands.lua

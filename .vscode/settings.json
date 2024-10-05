@@ -19,6 +19,8 @@
         "RaidNotice_AddMessage",
         "RaidWarningFrame",
         "Settings",
-        "ChatTypeInfo"
+        "ChatTypeInfo",
+        "message",
+        "CHANNEL"
     ]
 }
