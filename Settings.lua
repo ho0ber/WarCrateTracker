@@ -111,6 +111,19 @@ local function configureSettings()
     end
 
     
+    do
+        local variable = "debug"
+        local name = "Debugging Mode"
+        local tooltip = "Shows addon debugging information"
+        local variableKey = "debug"
+        local variableTbl = settings
+        local defaultValue = false
+    
+        local setting = Settings.RegisterAddOnSetting(category, variable, variableKey, variableTbl, type(defaultValue), name, defaultValue)
+        Settings.CreateCheckbox(category, setting, tooltip)
+    end
+
+    
 
     Settings.RegisterAddOnCategory(category)
     NS.settingsCategoryID = category:GetID()

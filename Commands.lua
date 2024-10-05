@@ -6,7 +6,6 @@ end
 
 SLASH_WCT1 = "/wct";
 function SlashCmdList.WCT(msg)
-
     if msg == "clear" then
         crateDB = {}
         print("Cleared crate DB.")
@@ -15,14 +14,12 @@ function SlashCmdList.WCT(msg)
         crateDB[NS.menu[arg]] = nil
     elseif msg == "spot" then
         NS.crateSpotted("manual")
-    elseif msg == "debug" then
-        NS.debug = not NS.debug
-        print("Debug set to", NS.debug)
     else
         if NS.mainFrame:IsShown() then
             NS.mainFrame:Hide()
         else
-            NS.updateFrame()
+            local curTime = GetServerTime()
+            NS.updateFrame(curTime)
             NS.mainFrame:Show()
         end
     end

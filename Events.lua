@@ -1,22 +1,19 @@
 local addonName, NS = ...
 
-local function updateFrame()
+local function updateFrame(curTime)
     -- PlaySound(808)
-    local curTime = GetServerTime()
     local menuIndex = 1
     local labelText = ""
     local timerText = ""
-    for _, k in pairs(NS.sortedZones()) do
-        local v = crateDB[k]
-        if v ~= nil then
-            local zoneInfo = C_Map.GetMapInfo(k)
-            if NS.shouldTrack(zoneInfo.parentMapID) then
-                local parentInfo = C_Map.GetMapInfo(zoneInfo.parentMapID)
-                local nc = nextCrate(k, v, curTime)
-                local stale = lastCrateStaleness(k, v, curTime)
-                NS.menu[tostring(menuIndex)] = k
-                labelText = labelText .. NS.MSG_LABEL:format(menuIndex, parentInfo.name, zoneInfo.name, stale) .. "\n"
-                timerText = timerText .. nc .. "\n"
+    for _, zoneID in pairs(NS.sortedZones()) do
+        local crateInfo = crateDB[zoneID]
+        if crateInfo ~= nil then
+            if NS.shouldTrack(crateInfo.zoneParentID) then
+                local nextCrateText = NS.nextCrateText(crateInfo, curTime)
+                local stale = NS.lastCrateStaleness(crateInfo, curTime)
+                NS.menu[tostring(menuIndex)] = crateInfo.zoneID
+                labelText = labelText .. NS.WINDOW_LABEL:format(menuIndex, crateInfo.zoneParentName, crateInfo.zoneName, stale) .. "\n"
+                timerText = timerText .. NS.WINDOW_TIMER:format(NS.abbreviateMethod(crateInfo), nextCrateText) .. "\n"
                 menuIndex = menuIndex + 1
             end
         end
@@ -32,19 +29,31 @@ local function updateFrame()
 end
 NS.updateFrame = updateFrame
 
+
+
 local function checkTimers()
     local curTime = GetServerTime()
-    for k, v in pairs(crateDB) do
-        if v ~= nil then
-            local zoneInfo = C_Map.GetMapInfo(k)
-            if NS.shouldWarn(zoneInfo.parentMapID) then
-                local parentInfo = C_Map.GetMapInfo(zoneInfo.parentMapID)
-                local nc = nextCrate(k, v, curTime)
-                NS.alert(k, v, curTime)
+    for _, crateInfo in pairs(crateDB) do
+        if crateInfo ~= nil then
+            if NS.shouldWarn(crateInfo.zoneParentID) then
+                NS.warnCrate(crateInfo, curTime)
             end
         end
     end
-    updateFrame()
+    updateFrame(curTime)
+end
+
+local function findMethod(vignetteID)
+    if vignetteID == 3689 then -- plane
+        return "plane"
+    elseif vignetteID == 2967 then -- falling crate
+        return "parachute"
+    elseif vignetteID == 6066 then -- unclaimed crate on ground
+        return "unclaimed"
+    elseif vignetteID == 6068 then -- claimed faction crate
+        return "claimed"
+    end
+    return nil
 end
 
 local function OnEvent(self, event, ...)
@@ -55,26 +64,18 @@ local function OnEvent(self, event, ...)
                 string.find(text, "I see some valuable resources in the area! Get ready to grab them!") or 
                 string.find(text, "Looks like there's treasure nearby. And that means treasure hunters. Watch your back.") or
                 string.find(text, "There's a cache of resources nearby. Find it before you have to fight over it!") then
-                NS.crateAnnounced(npcName, text)
+                NS.crateSpotted("heard")
             end
         end
         if npcName == "Malicia" then
             if string.find(text, "Looks like you could all use some resources") then
-                NS.crateAnnounced(npcName, text)
+                NS.crateSpotted("heard")
             end
         end
     elseif event == "CHAT_MSG_ADDON" then
         local prefix, text, channel, sender, target, zoneChannelID, localID, name, instanceID = ...
         if prefix == "WarCrateTracker" then
-            local spotType, zoneID_s, zoneParentID_s, ts_s, announcer = strsplit("~", text)
-            local zoneID = tonumber(zoneID_s)
-            local zoneParentID = tonumber(zoneParentID_s)
-            local ts = tonumber(ts_s)
-            if spotType == "ANNOUNCE" then
-                NS.doAnnounce(announcer, zoneID, zoneParentID, ts, sender)
-            else
-                NS.doAnnounce(nil, zoneID, zoneParentID, ts, sender)
-            end
+            NS.processCrateMessage(text, sender)
         end
     elseif event == "PLAYER_TARGET_CHANGED" then
         local name, realm = UnitName("target")
@@ -86,48 +87,27 @@ local function OnEvent(self, event, ...)
         if vignetteGUID ~= nil then
             local vignetteInfo = C_VignetteInfo.GetVignetteInfo(vignetteGUID)
             if vignetteInfo ~= nil then
-                NS.debugPrint("vignetteInfo.name=", vignetteInfo.name)
-                NS.debugPrint("vignetteInfo.vignetteID=", vignetteInfo.vignetteID)
-                NS.debugPrint("vignetteInfo.atlasName=", vignetteInfo.atlasName)
                 if vignetteInfo.name == "War Supply Crate" then
-                    if vignetteInfo.vignetteID == 3689 then -- plane
-                        NS.crateSpotted("track-plane")
-                    elseif vignetteInfo.vignetteID == 2967 then -- falling crate
-                        NS.crateSpotted("track-parachute")
-                    elseif vignetteInfo.vignetteID == 6066 then -- unclaimed crate on ground
-                        NS.crateSpotted("track-unclaimed")
-                    elseif vignetteInfo.vignetteID == 6068 then -- claimed faction crate
-                        NS.crateSpotted("track-claimed")
+                    local method = findMethod(vignetteInfo.vignetteID)
+                    if method ~= nil then
+                        NS.crateSpotted(method)
                     end
                 end
             end
         end
     elseif event == "VIGNETTES_UPDATED" then
-        -- NS.debugPrint("VIGNETTES_UPDATED")
         local vignetteGUIDs = C_VignetteInfo.GetVignettes()
         for k,v in pairs(vignetteGUIDs) do
             if NS.seenVignetteGUIDs[k] ~= true then
                 NS.seenVignetteGUIDs[k] = true
-                -- need to find some way to garbage collect this ever-growing set
                 local vignetteInfo = C_VignetteInfo.GetVignetteInfo(v)
-                -- NS.debugPrint(k,v)
-                -- if vignetteInfo ~= nil and vignetteInfo.atlasName ~= "VignetteKillElite" then
-                    -- NS.debugPrint("vignetteInfo.name=", vignetteInfo.name)
-                    -- NS.debugPrint("vignetteInfo.vignetteID=", vignetteInfo.vignetteID)
-                    -- NS.debugPrint("vignetteInfo.atlasName=", vignetteInfo.atlasName)
                 if vignetteInfo ~= nil and vignetteInfo.name == "War Supply Crate" then
-                    if vignetteInfo.vignetteID == 3689 then -- plane
-                        NS.crateSpotted("minimap-plane")
-                    elseif vignetteInfo.vignetteID == 2967 then -- falling crate
-                        NS.crateSpotted("minimap-parachute")
-                    elseif vignetteInfo.vignetteID == 6066 then -- unclaimed crate on ground
-                        NS.crateSpotted("minimap-unclaimed")
-                    elseif vignetteInfo.vignetteID == 6068 then -- claimed faction crate
-                        NS.crateSpotted("minimap-claimed")
+                    local method = findMethod(vignetteInfo.vignetteID)
+                    if method ~= nil then
+                        NS.crateSpotted(method)
                     end
                 end
             end
-            -- end
         end
     elseif event == "ADDON_LOADED" then
         local addon = ...
@@ -142,9 +122,11 @@ local function OnEvent(self, event, ...)
                 NS.debugPrint("Empty War Crate Settings - initializing!")
                 settings = {}
             end
+            NS.convertDB()
+            NS.sendAllCrates("LOGIN")
             NS.configureSettings()
 
-            timer = C_Timer.NewTicker(10, checkTimers)
+            NS.timer = C_Timer.NewTicker(10, checkTimers)
             if settings["xOfs"] ~= nil and settings["yOfs"] ~= nil then
                 NS.mainFrame:SetPoint("CENTER", UIParent, "CENTER", settings["xOfs"], settings["yOfs"])
             end
@@ -159,18 +141,18 @@ end
 
 NS.mainFrame:SetScript("OnShow", function()
     PlaySound(808)
-    if timer ~= nil then
-        timer:Cancel()
-        timer = C_Timer.NewTicker(1, checkTimers)
+    if NS.timer ~= nil then
+        NS.timer:Cancel()
+        NS.timer = C_Timer.NewTicker(1, checkTimers)
     end
     settings["show"] = true
 end)
 
 NS.mainFrame:SetScript("OnHide", function()
     PlaySound(808)
-    if timer ~= nil then
-        timer:Cancel()
-        timer = C_Timer.NewTicker(10, checkTimers)
+    if NS.timer ~= nil then
+        NS.timer:Cancel()
+        NS.timer = C_Timer.NewTicker(10, checkTimers)
     end
     settings["show"] = false
 end)

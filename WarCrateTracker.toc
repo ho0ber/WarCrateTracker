@@ -7,7 +7,6 @@
 
 ChatThrottleLib/ChatThrottleLib.xml
 WarCrateTracker.lua
-Strings.lua
 Settings.lua
 Time.lua
 Crates.lua

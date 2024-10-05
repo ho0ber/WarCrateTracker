@@ -1,6 +1,6 @@
 local addonName, NS = ...
 
-function disp_time(time)
+local function displayTime(time)
     local days = floor(time/86400)
     local d_unit = (days > 1 and "days" or "day")
     local hours = floor(mod(time, 86400)/3600)
@@ -9,39 +9,38 @@ function disp_time(time)
     if days > 0 then
         return format("%d %s %02d hr %02d min %02d sec",days,d_unit,hours,minutes,seconds)
     elseif hours > 0 then
-        return format("%02d hr %02d min %02d sec",hours,minutes,seconds)
+        return format("%02d:%02d:%02d",hours,minutes,seconds)
     elseif minutes > 0 then
-        return format("%02d min %02d sec",minutes,seconds)
+        return format("%02d:%02d",minutes,seconds)
     else
-        return format("%02d seconds",seconds)
+        return format("%02d sec",seconds)
     end
 
     return "Unknown"
 end
-NS.disp_time = disp_time
+NS.displayTime = displayTime
 
-function nextCrateTS(zoneID, last, current)
-    local zoneInfo = C_Map.GetMapInfo(zoneID)
-    local parentInfo = C_Map.GetMapInfo(zoneInfo.parentMapID)
-    if NS.frequency[zoneInfo.parentMapID] ~= nil then
-        local freq = NS.frequency[zoneInfo.parentMapID]
-        local nextCrateTS = last
-        local duration = current-last
-        local crateCount = floor(duration/freq)
-        local nextCrateTS = last+(crateCount+1)*freq
-        return nextCrateTS
-    else
-        NS.debugPrint("didn't find a frequency for", zoneInfo.parentMapID)
-        return 0
+
+local function nextCrateTime(crateInfo, curTime)
+    if crateInfo ~= nil then
+        local freq = NS.frequency[crateInfo.zoneParentID]
+        if freq ~= nil then
+            local nextCrateTS = crateInfo.ts
+            local duration = curTime-crateInfo.ts
+            local crateCount = floor(duration/freq)
+            local nextCrateTS = crateInfo.ts+(crateCount+1)*freq
+            return nextCrateTS
+        end
     end
+    return nil
 end
-NS.nextCrateTS = nextCrateTS
+NS.nextCrateTime = nextCrateTime
 
-function lastCrateStaleness(zoneID, last, current)
-    local zoneInfo = C_Map.GetMapInfo(zoneID)
-    if NS.frequency[zoneInfo.parentMapID] ~= nil then
-        local freq = NS.frequency[zoneInfo.parentMapID]
-        local duration = current-last
+
+local function lastCrateStaleness(crateInfo, curTime)
+    if NS.frequency[crateInfo.zoneParentID] ~= nil then
+        local freq = NS.frequency[crateInfo.zoneParentID]
+        local duration = curTime-crateInfo.ts
         return floor(duration/freq)
     else
         return nil
@@ -49,16 +48,14 @@ function lastCrateStaleness(zoneID, last, current)
 end
 NS.lastCrateStaleness = lastCrateStaleness
 
-function nextCrate(zoneID, last, current)
-    local zoneInfo = C_Map.GetMapInfo(zoneID)
-    local parentInfo = C_Map.GetMapInfo(zoneInfo.parentMapID)
+local function nextCrateText(crateInfo, curTime)
     local nc = "Unknown"
-    local ts = nextCrateTS(zoneID, last, current)
+    local ts = nextCrateTime(crateInfo, curTime)
     if ts ~= nil then
-        nc = tostring(disp_time(ts-current))
+        nc = tostring(displayTime(ts-curTime))
     else
-        nc = format("Unknown: %s (%i) has no frequency configured", parentInfo.name, zoneInfo.parentMapID)
+        nc = format("Unknown: %s (%i) has no frequency configured", crateInfo.zoneParentName, crateInfo.zoneParentID)
     end
     return nc
 end
-NS.nextCrate = nextCrate
+NS.nextCrateText = nextCrateText
