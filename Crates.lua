@@ -28,8 +28,16 @@ local function convertDB()
 end
 NS.convertDB = convertDB
 
-local function shouldAnnounce(zoneParentID)
-    return not ((zoneParentID == 2274 and not settings["twwAnnounce"]) or (zoneParentID == 1978 and not settings["dfAnnounce"]))
+local function shouldAnnounce(crateInfo)
+
+    if crateInfo.zoneParentID == 2274 then
+        return settings["twwAnnounce"]
+    end
+    if crateInfo.zoneParentID == 1978 then
+        return settings["dfAnnounce"]
+    end
+
+    return false -- don't announce unknown zones
 end
 NS.shouldAnnounce = shouldAnnounce
 
@@ -80,6 +88,11 @@ local function recordCrate(crateInfo)
         print("Ignoring crate information from", crateInfo.spotter, "because we have a newer spot")
         return
     end
+
+    if crateDB[crateInfo.zoneID] ~= nil and crateDB[crateInfo.zoneID].ts + 600 > crateInfo.ts and (crateInfo.method == "unclaimed" or crateInfo.method == "claimed") then
+        print("Ignoring crate information from", crateInfo.spotter, "because we have a better spot")
+        return
+    end
     
     crateDB[crateInfo.zoneID] = crateInfo
 
@@ -102,7 +115,7 @@ NS.sendAllCrates = sendAllCrates
 local function checkDelta(crateInfo)
     if crateDB[crateInfo.zoneID] ~= nil then
         local delta = crateInfo.ts - crateDB[crateInfo.zoneID].ts
-        if delta < 180 and delta > -180 then
+        if delta < 300 and delta > 300 then
             NS.debugPrint("Ignoring announcement from", crateInfo.spotter, "delta is", delta)
             return false
         end

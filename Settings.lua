@@ -123,9 +123,38 @@ local function configureSettings()
         Settings.CreateCheckbox(category, setting, tooltip)
     end
 
+    do
+        local name = "Staleness Threshold"
+        local variable = "staleness"
+        local defaultValue = 20
+        local minValue = 1
+        local maxValue = 120
+        local step = 1
+
+
+    	local function GetValue()
+            return settings.staleness or defaultValue
+        end
     
+        local function SetValue(value)
+            settings.staleness = value
+        end
+    
+        local setting = Settings.RegisterProxySetting(category, variable, type(defaultValue), name, defaultValue, GetValue, SetValue)
+        -- setting:SetValueChangedCallback(OnSettingChanged)
+    
+        local tooltip = "Stops warning and displaying crates that haven't been seen in this many rotations"
+        local options = Settings.CreateSliderOptions(minValue, maxValue, step)
+        options:SetLabelFormatter(MinimalSliderWithSteppersMixin.Label.Right);
+        Settings.CreateSlider(category, setting, options, tooltip)
+    end
 
     Settings.RegisterAddOnCategory(category)
     NS.settingsCategoryID = category:GetID()
+
+    --defaults on this doesn't seem to work right otherwise
+    if settings.staleness == nil then
+        settings.staleness = 20
+    end
 end
 NS.configureSettings = configureSettings

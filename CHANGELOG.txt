@@ -1,1 +1,2 @@
+- **v1.0.1** - Fixed an issue with new users not being able to run /wct without error. Also added a staleness threshold and modified crate priority
 - **v1.0.0** - Initial working version

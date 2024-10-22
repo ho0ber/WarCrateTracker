@@ -28,7 +28,7 @@ NS.WINDOW_LABEL = "%i. %s - %s (%ix)"
 NS.WINDOW_TIMER = "%s %s"
 
 local function debugPrint(...)
-    if NS.debug or settings.debug then
+    if NS.debug or (settings ~= nil and settings["debug"]) then
         print(...)
     end
 end

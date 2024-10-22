@@ -11,10 +11,12 @@ local function updateFrame(curTime)
             if NS.shouldTrack(crateInfo.zoneParentID) then
                 local nextCrateText = NS.nextCrateText(crateInfo, curTime)
                 local stale = NS.lastCrateStaleness(crateInfo, curTime)
-                NS.menu[tostring(menuIndex)] = crateInfo.zoneID
-                labelText = labelText .. NS.WINDOW_LABEL:format(menuIndex, crateInfo.zoneParentName, crateInfo.zoneName, stale) .. "\n"
-                timerText = timerText .. NS.WINDOW_TIMER:format(NS.abbreviateMethod(crateInfo), nextCrateText) .. "\n"
-                menuIndex = menuIndex + 1
+                if stale <= settings.staleness then
+                    NS.menu[tostring(menuIndex)] = crateInfo.zoneID
+                    labelText = labelText .. NS.WINDOW_LABEL:format(menuIndex, crateInfo.zoneParentName, crateInfo.zoneName, stale) .. "\n"
+                    timerText = timerText .. NS.WINDOW_TIMER:format(NS.abbreviateMethod(crateInfo), nextCrateText) .. "\n"
+                    menuIndex = menuIndex + 1
+                end
             end
         end
     end
