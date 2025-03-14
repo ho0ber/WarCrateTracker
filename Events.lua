@@ -1,5 +1,7 @@
 local addonName, NS = ...
 
+local lastx, lasty = 0, 0
+
 local function updateFrame(curTime)
     -- PlaySound(808)
     local menuIndex = 1
@@ -128,6 +130,14 @@ local function OnEvent(self, event, ...)
             NS.sendAllCrates("LOGIN")
             NS.configureSettings()
 
+            local function setScale()
+                if settings["zoneMapScale"] ~= nil then
+                    BattlefieldMapFrame:SetScale(settings.zoneMapScale/100)
+                end
+            end
+
+            -- C_Timer.NewTimer(10, setScale)
+
             NS.timer = C_Timer.NewTicker(10, checkTimers)
             if settings["xOfs"] ~= nil and settings["yOfs"] ~= nil then
                 NS.mainFrame:SetPoint("CENTER", UIParent, "CENTER", settings["xOfs"], settings["yOfs"])
@@ -138,6 +148,12 @@ local function OnEvent(self, event, ...)
         end
     elseif event == "PLAYER_LOGOUT" then
         NS.debugPrint("Logging out...")
+    elseif event == "PLAYER_ENTERING_WORLD" then
+        if settings["zoneMapScale"] ~= nil then
+            if BattlefieldMapFrame ~= nil then
+                BattlefieldMapFrame:SetScale(settings.zoneMapScale/100)
+            end
+        end
     end
 end
 
@@ -166,4 +182,5 @@ NS.mainFrame:RegisterEvent("CHAT_MSG_ADDON")
 NS.mainFrame:RegisterEvent("PLAYER_TARGET_CHANGED")
 NS.mainFrame:RegisterEvent("SUPER_TRACKING_CHANGED")
 NS.mainFrame:RegisterEvent("VIGNETTES_UPDATED")
+NS.mainFrame:RegisterEvent("PLAYER_ENTERING_WORLD")
 NS.mainFrame:SetScript("OnEvent", OnEvent)

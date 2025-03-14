@@ -149,6 +149,38 @@ local function configureSettings()
         Settings.CreateSlider(category, setting, options, tooltip)
     end
 
+    do
+        local name = "ZoneMap Scale"
+        local variable = "zoneMapScale"
+        local defaultValue = 100
+        local minValue = 1
+        local maxValue = 200
+        local step = 1
+
+
+    	local function GetValue()
+            return settings.zoneMapScale or defaultValue
+        end
+    
+        local function SetValue(value)
+            settings.zoneMapScale = value
+        end
+
+        local function ZoneMapSettingChanged()
+            if BattlefieldMapFrame ~= nil then
+                BattlefieldMapFrame:SetScale(settings.zoneMapScale/100)
+            end
+        end
+    
+        local setting = Settings.RegisterProxySetting(category, variable, type(defaultValue), name, defaultValue, GetValue, SetValue)
+        setting:SetValueChangedCallback(ZoneMapSettingChanged)
+    
+        local tooltip = "Sets the scale of the ZoneMap you can open with Shift+M"
+        local options = Settings.CreateSliderOptions(minValue, maxValue, step)
+        options:SetLabelFormatter(MinimalSliderWithSteppersMixin.Label.Right);
+        Settings.CreateSlider(category, setting, options, tooltip)
+    end
+
     Settings.RegisterAddOnCategory(category)
     NS.settingsCategoryID = category:GetID()
 

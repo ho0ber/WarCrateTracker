@@ -8,7 +8,7 @@ NS.menu = {}
 NS.timer = nil
 NS.settingsCategoryID = nil
 NS.seenVignetteGUIDs = {}
-NS.frequency = {[2274]=1200,[1978]=2700}
+NS.frequency = {[2274]=1080,[1978]=2700,[2214]=1080}
 NS.methods = {
     heard="!", -- announced by NPC in zone
     plane="^", -- plane spotted

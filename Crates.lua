@@ -30,7 +30,7 @@ NS.convertDB = convertDB
 
 local function shouldAnnounce(crateInfo)
 
-    if crateInfo.zoneParentID == 2274 then
+    if crateInfo.zoneParentID == 2274 or crateInfo.zoneParentID == 2214 then
         return settings["twwAnnounce"]
     end
     if crateInfo.zoneParentID == 1978 then
@@ -42,12 +42,12 @@ end
 NS.shouldAnnounce = shouldAnnounce
 
 local function shouldTrack(zoneParentID)
-    return not ((zoneParentID == 2274 and not settings["twwTrack"]) or (zoneParentID == 1978 and not settings["dfTrack"]))
+    return not (((zoneParentID == 2274 or zoneParentID == 2214) and not settings["twwTrack"]) or (zoneParentID == 1978 and not settings["dfTrack"]))
 end
 NS.shouldTrack = shouldTrack
 
 local function shouldWarn(zoneParentID)
-    return not ((zoneParentID == 2274 and not settings["twwWarn"]) or (zoneParentID == 1978 and not settings["dfWarn"]))
+    return not (((zoneParentID == 2274 or zoneParentID == 2214) and not settings["twwWarn"]) or (zoneParentID == 1978 and not settings["dfWarn"]))
 end
 NS.shouldWarn = shouldWarn
 
@@ -79,8 +79,8 @@ local function sendCrate(crateInfo, sendType)
 end
 
 local function recordCrate(crateInfo)
-    if not (crateInfo.zoneParentID == 2274 or crateInfo.zoneParentID == 1978) then
-        print("Ignoring bad crate - zoneParentID not in whitelist")
+    if not (crateInfo.zoneParentID == 2274 or crateInfo.zoneParentID == 2214 or crateInfo.zoneParentID == 1978) then
+        print("Ignoring bad crate - zoneParentID", crateInfo.zoneParentID, " not in whitelist")
         return
     end
 
