@@ -80,17 +80,17 @@ end
 
 local function recordCrate(crateInfo)
     if not (crateInfo.zoneParentID == 2274 or crateInfo.zoneParentID == 2214 or crateInfo.zoneParentID == 1978) then
-        print("Ignoring bad crate - zoneParentID", crateInfo.zoneParentID, " not in whitelist")
+        NS.debugPrint("Ignoring bad crate - zoneParentID", crateInfo.zoneParentID, " not in whitelist")
         return
     end
 
     if crateDB[crateInfo.zoneID] ~= nil and crateDB[crateInfo.zoneID].ts > crateInfo.ts then
-        print("Ignoring crate information from", crateInfo.spotter, "because we have a newer spot")
+        NS.debugPrint("Ignoring crate information from", crateInfo.spotter, "because we have a newer spot")
         return
     end
 
     if crateDB[crateInfo.zoneID] ~= nil and crateDB[crateInfo.zoneID].ts + 600 > crateInfo.ts and (crateInfo.method == "unclaimed" or crateInfo.method == "claimed") then
-        print("Ignoring crate information from", crateInfo.spotter, "because we have a better spot")
+        NS.debugPrint("Ignoring crate information from", crateInfo.spotter, "because we have a better spot")
         return
     end
     
