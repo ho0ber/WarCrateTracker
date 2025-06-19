@@ -1,3 +1,4 @@
+- **v1.0.5** - 11.1.7 support
 - **v1.0.4** - Improved timers, removed debug statements
 - **v1.0.3** - 11.1.5 support
 - **v1.0.2** - Undermine support, ZoneMap scaling
