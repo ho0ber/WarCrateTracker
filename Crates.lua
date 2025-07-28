@@ -76,6 +76,7 @@ local function sendCrate(crateInfo, sendType)
     local message = strjoin("~", sendType, crateInfo.method, tostring(crateInfo.ts), tostring(crateInfo.zoneID), tostring(crateInfo.zoneParentID), crateInfo.zoneName, crateInfo.zoneParentName, crateInfo.spotter)
     NS.debugPrint("sending:",message)
     ChatThrottleLib:SendAddonMessage("NORMAL",  "WarCrateTracker", message, "GUILD") --"CHANNEL", "WarCrateTracker");
+    ChatThrottleLib:SendAddonMessage("NORMAL",  "WarCrateTracker", message, "PARTY")
 end
 
 local function recordCrate(crateInfo)

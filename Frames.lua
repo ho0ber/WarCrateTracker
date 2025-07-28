@@ -35,6 +35,18 @@ NS.settingsButton:SetScript("OnClick", function()
     end
 end)
 
+NS.syncButton = CreateFrame("Button", "Sync", NS.mainFrame)
+NS.syncButton:SetPoint("TOPRIGHT", NS.mainFrame, "TOPRIGHT", -100, -6)
+NS.syncButton:SetWidth(50)
+NS.syncButton:SetHeight(10)
+NS.syncButton:SetText("Sync")
+NS.syncButton:SetNormalFontObject("GameFontNormalSmall")
+
+NS.syncButton:SetScript("OnClick", function()
+    NS.sendAllCrates("LOGIN")
+end)
+
+
 
 NS.mainFrame.labels = NS.mainFrame:CreateFontString(nil, "OVERLAY", "GameFontNormal")
 NS.mainFrame.labels:SetPoint("TOPLEFT", NS.mainFrame, "TOPLEFT", 15, -35)
