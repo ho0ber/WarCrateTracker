@@ -13,3 +13,6 @@ Crates.lua
 Frames.lua
 Events.lua
 Commands.lua
+Detection.lua
+Messages.lua
+CrateDB.lua

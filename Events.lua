@@ -7,16 +7,17 @@ local function updateFrame(curTime)
     local menuIndex = 1
     local labelText = ""
     local timerText = ""
-    for _, zoneID in pairs(NS.sortedZones()) do
-        local crateInfo = crateDB[zoneID]
+    for _, crateKey in pairs(NS.sortedCrateKeys()) do
+        local crateInfo = crateDB[crateKey]
         if crateInfo ~= nil then
-            if NS.shouldTrack(crateInfo.zoneParentID) then
+            if NS.shouldTrack(crateInfo) then
+                local zoneConfig = NS.zoneConfig[crateInfo.zoneID]
                 local nextCrateText = NS.nextCrateText(crateInfo, curTime)
                 local stale = NS.lastCrateStaleness(crateInfo, curTime)
                 if stale <= settings.staleness then
                     NS.menu[tostring(menuIndex)] = crateInfo.zoneID
-                    labelText = labelText .. NS.WINDOW_LABEL:format(menuIndex, crateInfo.zoneParentName, crateInfo.zoneName, stale) .. "\n"
-                    timerText = timerText .. NS.WINDOW_TIMER:format(NS.abbreviateMethod(crateInfo), nextCrateText) .. "\n"
+                    labelText = labelText .. NS.WINDOW_LABEL:format(menuIndex, zoneConfig.exp, zoneConfig.abbr, crateInfo.shardID, stale) .. "\n"
+                    timerText = timerText .. NS.WINDOW_TIMER:format(crateInfo.method.abbr, nextCrateText) .. "\n"
                     menuIndex = menuIndex + 1
                 end
             end
@@ -47,77 +48,20 @@ local function checkTimers()
     updateFrame(curTime)
 end
 
-local function findMethod(vignetteID)
-    if vignetteID == 3689 then -- plane
-        return "plane"
-    elseif vignetteID == 2967 then -- falling crate
-        return "parachute"
-    elseif vignetteID == 6066 then -- unclaimed crate on ground
-        return "unclaimed"
-    elseif vignetteID == 6068 then -- claimed faction crate
-        return "claimed"
-    end
-    return nil
-end
 
 local function OnEvent(self, event, ...)
-    if event == "CHAT_MSG_MONSTER_SAY" then
-        local text, npcName, languageName, channelName, npcName2, specialFlags, zoneChannelID, channelIndex, channelBaseName, languageID, lineID, guid, bnSenderID, isMobile, isSubtitle, hideSenderInLetterbox, supressRaidIcons = ...
-        if npcName == "Ruffious" then
-            if string.find(text, "Opportunity's knocking! If you've got the mettle, there are valuables waiting to be won.") or 
-                string.find(text, "I see some valuable resources in the area! Get ready to grab them!") or 
-                string.find(text, "Looks like there's treasure nearby. And that means treasure hunters. Watch your back.") or
-                string.find(text, "There's a cache of resources nearby. Find it before you have to fight over it!") then
-                NS.crateSpotted("heard")
-            end
-        end
-        if npcName == "Malicia" then
-            if string.find(text, "Looks like you could all use some resources") then
-                NS.crateSpotted("heard")
-            end
-        end
-    elseif event == "CHAT_MSG_ADDON" then
-        local prefix, text, channel, sender, target, zoneChannelID, localID, name, instanceID = ...
-        if prefix == "WarCrateTracker" then
-            NS.processCrateMessage(text, sender)
-        end
-    elseif event == "PLAYER_TARGET_CHANGED" then
-        local name, realm = UnitName("target")
-        if name == "War Supply Crate" then
-            NS.crateSpotted("target")
-        end
-    elseif event == "SUPER_TRACKING_CHANGED" then
-        local vignetteGUID = C_SuperTrack.GetSuperTrackedVignette()
-        if vignetteGUID ~= nil then
-            local vignetteInfo = C_VignetteInfo.GetVignetteInfo(vignetteGUID)
-            if vignetteInfo ~= nil then
-                if vignetteInfo.name == "War Supply Crate" then
-                    local method = findMethod(vignetteInfo.vignetteID)
-                    if method ~= nil then
-                        NS.crateSpotted(method)
-                    end
-                end
-            end
-        end
+    if event == "VIGNETTE_MINIMAP_UPDATED" then
+        NS.vignetteMinimapUpdated(event, ...)
     elseif event == "VIGNETTES_UPDATED" then
-        local vignetteGUIDs = C_VignetteInfo.GetVignettes()
-        for k,v in pairs(vignetteGUIDs) do
-            if NS.seenVignetteGUIDs[k] ~= true then
-                NS.seenVignetteGUIDs[k] = true
-                local vignetteInfo = C_VignetteInfo.GetVignetteInfo(v)
-                if vignetteInfo ~= nil and vignetteInfo.name == "War Supply Crate" then
-                    local method = findMethod(vignetteInfo.vignetteID)
-                    if method ~= nil then
-                        NS.crateSpotted(method)
-                    end
-                end
-            end
-        end
+        NS.vignettesUpdated(event, ...)
+    -- elseif event == "SUPER_TRACKING_CHANGED" then
+        -- NS.superTrackingChanged(event, ...)
     elseif event == "ADDON_LOADED" then
         local addon = ...
         if addon == "WarCrateTracker" then
             print("WarCrateTracker loaded! /wct to toggle window")
             C_ChatInfo.RegisterAddonMessagePrefix("WarCrateTracker")
+            -- crateDB = nil
             if crateDB == nil then
                 NS.debugPrint("Empty War Crate Database - initializing!")
                 crateDB = {}
@@ -126,7 +70,7 @@ local function OnEvent(self, event, ...)
                 NS.debugPrint("Empty War Crate Settings - initializing!")
                 settings = {}
             end
-            NS.convertDB()
+            -- NS.convertDB()
             NS.sendAllCrates("LOGIN")
             NS.configureSettings()
 
@@ -135,8 +79,6 @@ local function OnEvent(self, event, ...)
                     BattlefieldMapFrame:SetScale(settings.zoneMapScale/100)
                 end
             end
-
-            -- C_Timer.NewTimer(10, setScale)
 
             NS.timer = C_Timer.NewTicker(10, checkTimers)
             if settings["xOfs"] ~= nil and settings["yOfs"] ~= nil then
@@ -175,12 +117,13 @@ NS.mainFrame:SetScript("OnHide", function()
     settings["show"] = false
 end)
 
-NS.mainFrame:RegisterEvent("CHAT_MSG_MONSTER_SAY")
+-- NS.mainFrame:RegisterEvent("CHAT_MSG_MONSTER_SAY")
 NS.mainFrame:RegisterEvent("ADDON_LOADED")
-NS.mainFrame:RegisterEvent("PLAYER_LOGOUT")
-NS.mainFrame:RegisterEvent("CHAT_MSG_ADDON")
-NS.mainFrame:RegisterEvent("PLAYER_TARGET_CHANGED")
+-- NS.mainFrame:RegisterEvent("PLAYER_LOGOUT")
+-- NS.mainFrame:RegisterEvent("CHAT_MSG_ADDON")
+-- NS.mainFrame:RegisterEvent("PLAYER_TARGET_CHANGED")
 NS.mainFrame:RegisterEvent("SUPER_TRACKING_CHANGED")
 NS.mainFrame:RegisterEvent("VIGNETTES_UPDATED")
+NS.mainFrame:RegisterEvent("VIGNETTE_MINIMAP_UPDATED")
 NS.mainFrame:RegisterEvent("PLAYER_ENTERING_WORLD")
 NS.mainFrame:SetScript("OnEvent", OnEvent)
