@@ -1,7 +1,10 @@
 local addonName, NS = ...
 
 local function shouldAnnounce(crateInfo)
-    return true
+    local zoneConfig = NS.zoneConfig[crateInfo.zoneID]
+    if zoneConfig.exp == "TWW" and settings["twwAnnounce"] then
+        return true
+    end
 
     -- if crateInfo.zoneParentID == 2274 or crateInfo.zoneParentID == 2214 then
     --     return settings["twwAnnounce"]
@@ -9,19 +12,26 @@ local function shouldAnnounce(crateInfo)
     -- if crateInfo.zoneParentID == 1978 then
     --     return settings["dfAnnounce"]
     -- end
-
-    -- return false -- don't announce unknown zones
+    return false
 end
 NS.shouldAnnounce = shouldAnnounce
 
 local function shouldTrack(crateInfo)
-    return true
+    local zoneConfig = NS.zoneConfig[crateInfo.zoneID]
+    if zoneConfig.exp == "TWW" and settings["twwTrack"] then
+        return true
+    end
+    return false
     -- return not (((zoneParentID == 2274 or zoneParentID == 2214) and not settings["twwTrack"]) or (zoneParentID == 1978 and not settings["dfTrack"]))
 end
 NS.shouldTrack = shouldTrack
 
 local function shouldWarn(crateInfo)
-    return true
+    local zoneConfig = NS.zoneConfig[crateInfo.zoneID]
+    if zoneConfig.exp == "TWW" and settings["twwWarn"] then
+        return true
+    end
+    return false
     -- return not (((zoneParentID == 2274 or zoneParentID == 2214) and not settings["twwWarn"]) or (zoneParentID == 1978 and not settings["dfWarn"]))
 end
 NS.shouldWarn = shouldWarn
@@ -82,7 +92,6 @@ local function crateIsDupe(crateInfo)
     return (crateInfo.ts - existing.ts) <= 180
 end
 
-
 local function recordCrate(crateInfo)
     local existing = NS.getCrateFromDB(crateInfo.zoneID, crateInfo.shardID)
 
@@ -106,8 +115,8 @@ local function sendAllCrates(sendType)
     for _, crateInfo in pairs(crateDB) do
         if crateInfo ~= nil then
             NS.sendCrate(crateInfo, t)
-            if t == "LOGIN" then
-                t = "UPDATE" -- Hacky solution to ensure other clients don't reply ALL crates to EACH send on login
+            if t == "REQUEST_V2" then
+                t = "UPDATE_V2" -- Hacky solution to ensure other clients don't reply ALL crates to EACH send on login
             end
         end
     end
@@ -134,15 +143,16 @@ local function announceCrate(crateInfo)
         print(NS.MSG_CRATE_SPOT:format(zoneConfig.name, zoneConfig.exp, crateInfo.spotter, crateInfo.method.name))
     end
 end
+NS.announceCrate = announceCrate
 
 local function crateSpotted(vignetteGUID)
     local crateInfo = genCrateInfo(vignetteGUID)
     if crateInfo ~= nil then
         local zoneConfig = NS.zoneConfig[crateInfo.zoneID]
         if zoneConfig == nil then return nil end
-        NS.debugPrint("Crate spotted in", zoneConfig.name, "via method", crateInfo.method, "- deciding if should be announced")
+        NS.debugPrint("Crate spotted in", zoneConfig.name, "via method", crateInfo.method.name, "- deciding if should be announced")
         if not crateIsDupe(crateInfo) then
-            NS.sendCrate(crateInfo, "SPOT")
+            NS.sendCrate(crateInfo, "SPOT_V2")
             announceCrate(crateInfo)
             recordCrate(crateInfo)
         end

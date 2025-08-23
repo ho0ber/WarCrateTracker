@@ -1,5 +1,5 @@
 ## Interface: 110107
-## Version: 1.0.6
+## Version: 1.1.0
 ## Title: WarCrateTracker
 ## SavedVariables: crateDB, settings
 ## Notes: Announces, shares, and tracks the dropping of war crates
@@ -11,8 +11,8 @@ Settings.lua
 Time.lua
 Crates.lua
 Frames.lua
+Detection.lua
 Events.lua
 Commands.lua
-Detection.lua
 Messages.lua
 CrateDB.lua

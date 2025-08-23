@@ -43,7 +43,7 @@ NS.syncButton:SetText("Sync")
 NS.syncButton:SetNormalFontObject("GameFontNormalSmall")
 
 NS.syncButton:SetScript("OnClick", function()
-    NS.sendAllCrates("LOGIN")
+    NS.sendAllCrates("REQUEST_V2")
 end)
 
 

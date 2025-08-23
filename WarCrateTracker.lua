@@ -10,10 +10,10 @@ NS.settingsCategoryID = nil
 NS.seenVignetteGUIDs = {}
 -- NS.frequency = {[2274]=1095,[1978]=2720,[2214]=1095}
 NS.crateVignetteIDs = {
-    [3689] = {name="plane", abbr="^"},
-    [2967] = {name="parachute", abbr="*"},
-    [6066] = {name="unclaimed", abbr="X"},
-    [6068] = {name="claimed", abbr="_"},
+    [3689] = {name="plane", abbr="^", vignetteID=3689},
+    [2967] = {name="parachute", abbr="*", vignetteID=2967},
+    [6066] = {name="unclaimed", abbr="X", vignetteID=6066},
+    [6068] = {name="claimed", abbr="_", vignetteID=6068},
 }
 NS.zoneConfig = {
     -- The War Within, Khaz Algar
@@ -41,7 +41,7 @@ NS.WINDOW_TIMER = "%s %s"
 
 local function debugPrint(...)
     if NS.debug or (settings ~= nil and settings["debug"]) then
-        print(...)
+        print("WCT::", ...)
     end
 end
 NS.debugPrint = debugPrint

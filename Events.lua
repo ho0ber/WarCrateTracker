@@ -1,6 +1,7 @@
 local addonName, NS = ...
 
 local lastx, lasty = 0, 0
+local setupExecuted = false
 
 local function updateFrame(curTime)
     -- PlaySound(808)
@@ -15,8 +16,8 @@ local function updateFrame(curTime)
                 local nextCrateText = NS.nextCrateText(crateInfo, curTime)
                 local stale = NS.lastCrateStaleness(crateInfo, curTime)
                 if stale <= settings.staleness then
-                    NS.menu[tostring(menuIndex)] = crateInfo.zoneID
-                    labelText = labelText .. NS.WINDOW_LABEL:format(menuIndex, zoneConfig.exp, zoneConfig.abbr, crateInfo.shardID, stale) .. "\n"
+                    NS.menu[tostring(menuIndex)] = crateKey
+                    labelText = labelText .. NS.WINDOW_LABEL:format(menuIndex, zoneConfig.exp, zoneConfig.name, crateInfo.shardID, stale) .. "\n"
                     timerText = timerText .. NS.WINDOW_TIMER:format(crateInfo.method.abbr, nextCrateText) .. "\n"
                     menuIndex = menuIndex + 1
                 end
@@ -40,25 +41,32 @@ local function checkTimers()
     local curTime = GetServerTime()
     for _, crateInfo in pairs(crateDB) do
         if crateInfo ~= nil then
-            if NS.shouldWarn(crateInfo.zoneParentID) then
+            if NS.shouldWarn(crateInfo) then
                 NS.warnCrate(crateInfo, curTime)
             end
         end
     end
     updateFrame(curTime)
+    NS.vignettesUpdated()
 end
 
 
 local function OnEvent(self, event, ...)
-    if event == "VIGNETTE_MINIMAP_UPDATED" then
+    if event == "VIGNETTE_MINIMAP_UPDATED" and NS.vignetteMinimapUpdated ~= nil then
         NS.vignetteMinimapUpdated(event, ...)
-    elseif event == "VIGNETTES_UPDATED" then
+    elseif event == "VIGNETTES_UPDATED" and NS.vignettesUpdated ~= nil then
         NS.vignettesUpdated(event, ...)
-    -- elseif event == "SUPER_TRACKING_CHANGED" then
-        -- NS.superTrackingChanged(event, ...)
+    elseif event == "SUPER_TRACKING_CHANGED" then
+        NS.superTrackingChanged(event, ...)
+    elseif event == "CHAT_MSG_ADDON" then
+        local prefix, text, channel, sender, target, zoneChannelID, localID, name, instanceID = ...
+        if prefix == "WarCrateTracker" then
+            NS.processCrateMessage(text, sender)
+        end
     elseif event == "ADDON_LOADED" then
         local addon = ...
-        if addon == "WarCrateTracker" then
+        if addon == "WarCrateTracker" and setupExecuted == false then
+            setupExecuted = true
             print("WarCrateTracker loaded! /wct to toggle window")
             C_ChatInfo.RegisterAddonMessagePrefix("WarCrateTracker")
             -- crateDB = nil
@@ -71,7 +79,7 @@ local function OnEvent(self, event, ...)
                 settings = {}
             end
             -- NS.convertDB()
-            NS.sendAllCrates("LOGIN")
+            NS.sendAllCrates("REQUEST_V2")
             NS.configureSettings()
 
             local function setScale()
@@ -87,6 +95,7 @@ local function OnEvent(self, event, ...)
             if settings["show"] ~= nil and settings["show"] then
                 NS.mainFrame:Show()
             end
+
         end
     elseif event == "PLAYER_LOGOUT" then
         NS.debugPrint("Logging out...")
@@ -117,13 +126,15 @@ NS.mainFrame:SetScript("OnHide", function()
     settings["show"] = false
 end)
 
--- NS.mainFrame:RegisterEvent("CHAT_MSG_MONSTER_SAY")
 NS.mainFrame:RegisterEvent("ADDON_LOADED")
+NS.mainFrame:RegisterEvent("CHAT_MSG_ADDON")
+-- NS.mainFrame:RegisterEvent("CHAT_MSG_MONSTER_SAY")
 -- NS.mainFrame:RegisterEvent("PLAYER_LOGOUT")
--- NS.mainFrame:RegisterEvent("CHAT_MSG_ADDON")
 -- NS.mainFrame:RegisterEvent("PLAYER_TARGET_CHANGED")
+
 NS.mainFrame:RegisterEvent("SUPER_TRACKING_CHANGED")
 NS.mainFrame:RegisterEvent("VIGNETTES_UPDATED")
 NS.mainFrame:RegisterEvent("VIGNETTE_MINIMAP_UPDATED")
 NS.mainFrame:RegisterEvent("PLAYER_ENTERING_WORLD")
+
 NS.mainFrame:SetScript("OnEvent", OnEvent)
