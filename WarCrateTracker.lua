@@ -19,8 +19,8 @@ NS.crateVignetteIDs = {
 }
 NS.zoneConfig = {
     -- The War Within, Khaz Algar
-    [2248] = {exp="TWW", name="Isle of Dorn",  shortname="Dorn",    abbr="KA:D",  frequency=1095, remap=nil},
-    [2328] = {exp="TWW", name="Isle of Dorn",  shortname="Dorn",    abbr="KA:D",  frequency=1095, remap=2248}, --The Proscenium
+    [2248] = {exp="TWW", name="Isle of Dorn",  shortname="Dorn",    abbr="KA:D",  frequency=1098, remap=nil},
+    [2328] = {exp="TWW", name="Isle of Dorn",  shortname="Dorn",    abbr="KA:D",  frequency=1098, remap=2248}, --The Proscenium
     [2214] = {exp="TWW", name="Ringing Deeps", shortname="Deeps",   abbr="KA:RD", frequency=1095, remap=nil},
     [2215] = {exp="TWW", name="Hallowfall",    shortname="Hallow",  abbr="KA:H",  frequency=1095, remap=nil},
     [2255] = {exp="TWW", name="Azj-Kahet",     shortname="Azj-K",   abbr="KA:AK", frequency=1095, remap=nil},
