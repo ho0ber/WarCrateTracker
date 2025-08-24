@@ -56,7 +56,6 @@ local function processCrateMessage(text, sender)
         }
     end
 
-    DevTools_Dump(crateInfo)
     -- NS.debugPrint("Recieved addon message from", sender, "-", text)
     if sendType == "SPOT_V2" then
         NS.announceCrate(crateInfo)
