@@ -101,6 +101,3 @@ local function superTrackingChanged(event, ...)
     checkVignette(vignetteGUID)
 end
 NS.superTrackingChanged = superTrackingChanged
-
-
-/run for _,guid in ipairs(C_VignetteInfo.GetVignettes()) do print(guid); DevTools_Dump(C_VignetteInfo.GetVignetteInfo(guid)) end
