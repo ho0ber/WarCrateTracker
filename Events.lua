@@ -50,6 +50,58 @@ local function checkTimers()
     NS.vignettesUpdated()
 end
 
+local function addonLoaded(event, ...)
+    local addon = ...
+    if addon == "WarCrateTracker" and setupExecuted == false then
+        setupExecuted = true
+        print("WarCrateTracker loaded! /wct to toggle window")
+        C_ChatInfo.RegisterAddonMessagePrefix("WarCrateTracker")
+        -- crateDB = nil
+        if crateDB == nil then
+            NS.debugPrint("Empty War Crate Database - initializing!")
+            crateDB = {}
+        end
+        if settings == nil then
+            NS.debugPrint("Empty War Crate Settings - initializing!")
+            settings = {}
+        end
+        -- NS.convertDB()
+        NS.sendAllCrates("REQUEST_V2")
+        NS.configureSettings()
+
+        local function setScale()
+            if settings["zoneMapScale"] ~= nil then
+                BattlefieldMapFrame:SetScale(settings.zoneMapScale/100)
+            end
+        end
+
+        NS.timer = C_Timer.NewTicker(10, checkTimers)
+        if settings["xOfs"] ~= nil and settings["yOfs"] ~= nil then
+            NS.mainFrame:SetPoint("CENTER", UIParent, "CENTER", settings["xOfs"], settings["yOfs"])
+        end
+        if settings["show"] ~= nil and settings["show"] then
+            NS.mainFrame:Show()
+        end
+
+    end
+
+end
+
+local function chatMsgAddon(event, ...)
+    local prefix, text, channel, sender, target, zoneChannelID, localID, name, instanceID = ...
+    if prefix == "WarCrateTracker" then
+        NS.processCrateMessage(text, sender)
+    end
+end
+
+local function playerEnteringWorld(event, ...)
+    if settings["zoneMapScale"] ~= nil then
+        if BattlefieldMapFrame ~= nil then
+            BattlefieldMapFrame:SetScale(settings.zoneMapScale/100)
+        end
+    end
+end
+
 
 local function OnEvent(self, event, ...)
     if event == "VIGNETTE_MINIMAP_UPDATED" and NS.vignetteMinimapUpdated ~= nil then
@@ -59,52 +111,11 @@ local function OnEvent(self, event, ...)
     elseif event == "SUPER_TRACKING_CHANGED" then
         NS.superTrackingChanged(event, ...)
     elseif event == "CHAT_MSG_ADDON" then
-        local prefix, text, channel, sender, target, zoneChannelID, localID, name, instanceID = ...
-        if prefix == "WarCrateTracker" then
-            NS.processCrateMessage(text, sender)
-        end
+        chatMsgAddon(event, ...)
     elseif event == "ADDON_LOADED" then
-        local addon = ...
-        if addon == "WarCrateTracker" and setupExecuted == false then
-            setupExecuted = true
-            print("WarCrateTracker loaded! /wct to toggle window")
-            C_ChatInfo.RegisterAddonMessagePrefix("WarCrateTracker")
-            -- crateDB = nil
-            if crateDB == nil then
-                NS.debugPrint("Empty War Crate Database - initializing!")
-                crateDB = {}
-            end
-            if settings == nil then
-                NS.debugPrint("Empty War Crate Settings - initializing!")
-                settings = {}
-            end
-            -- NS.convertDB()
-            NS.sendAllCrates("REQUEST_V2")
-            NS.configureSettings()
-
-            local function setScale()
-                if settings["zoneMapScale"] ~= nil then
-                    BattlefieldMapFrame:SetScale(settings.zoneMapScale/100)
-                end
-            end
-
-            NS.timer = C_Timer.NewTicker(10, checkTimers)
-            if settings["xOfs"] ~= nil and settings["yOfs"] ~= nil then
-                NS.mainFrame:SetPoint("CENTER", UIParent, "CENTER", settings["xOfs"], settings["yOfs"])
-            end
-            if settings["show"] ~= nil and settings["show"] then
-                NS.mainFrame:Show()
-            end
-
-        end
-    elseif event == "PLAYER_LOGOUT" then
-        NS.debugPrint("Logging out...")
+        addonLoaded(event, ...)
     elseif event == "PLAYER_ENTERING_WORLD" then
-        if settings["zoneMapScale"] ~= nil then
-            if BattlefieldMapFrame ~= nil then
-                BattlefieldMapFrame:SetScale(settings.zoneMapScale/100)
-            end
-        end
+        playerEnteringWorld(event, ...)
     end
 end
 
@@ -129,7 +140,6 @@ end)
 NS.mainFrame:RegisterEvent("ADDON_LOADED")
 NS.mainFrame:RegisterEvent("CHAT_MSG_ADDON")
 -- NS.mainFrame:RegisterEvent("CHAT_MSG_MONSTER_SAY")
--- NS.mainFrame:RegisterEvent("PLAYER_LOGOUT")
 -- NS.mainFrame:RegisterEvent("PLAYER_TARGET_CHANGED")
 
 NS.mainFrame:RegisterEvent("SUPER_TRACKING_CHANGED")
