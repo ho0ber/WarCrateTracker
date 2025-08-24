@@ -27,7 +27,7 @@ end
 NS.checkForMovement = nil
 local function checkForMovement()
     local x, y = getPosition(lastGUID)
-    if x == nil or y == nil then
+    if x == nil or y == nil or lastx == nil or lasty == nil then
         return
     end
     xdelta = x-lastx
