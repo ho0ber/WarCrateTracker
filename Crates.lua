@@ -112,11 +112,14 @@ NS.recordCrate = recordCrate
 
 local function sendAllCrates(sendType)
     local t = sendType
+    local curTime = GetServerTime()
     for _, crateInfo in pairs(crateDB) do
         if crateInfo ~= nil then
-            NS.sendCrate(crateInfo, t)
-            if t == "REQUEST_V2" then
-                t = "UPDATE_V2" -- Hacky solution to ensure other clients don't reply ALL crates to EACH send on login
+            if curTime - crateInfo.ts <= 86400 then 
+                NS.sendCrate(crateInfo, t)
+                if t == "REQUEST_V2" then
+                    t = "UPDATE_V2" -- Hacky solution to ensure other clients don't reply ALL crates to EACH send on login
+                end
             end
         end
     end

@@ -27,24 +27,36 @@ local function processCrateMessage(text, sender)
         -- NS.debugPrint("Ignoring a message from myself:",sender,text)
         return
     end
-    local split = strsplit("~", text)
-    local sendType = split[1]
+
+    local sendType, _ = strsplit("~", text, 2)
+    local crateInfo = nil
     if sendType == "SPOT_V2" or sendType == "REQUEST_V2" or sendType == "UPDATE_V2" then
+        print(text)
         local _, method_id, ts_s, zoneID_s, spotter, shardID, guid = strsplit("~", text)
+        print(method_id, ts_s, zoneID_s, spotter, shardID, guid)
         local method = NS.crateVignetteIDs[tonumber(method_id)]
-    else
-        local _, method, ts_s, zoneID_s, zoneParentID_s, zoneName, zoneParentName, spotter = strsplit("~", text)
-        local shardID, guid = "unknown", "unknown"
+        crateInfo = {
+            guid=guid,
+            method=method,
+            ts=tonumber(ts_s),
+            zoneID=tonumber(zoneID_s),
+            shardID=shardID,
+            spotter=spotter
+        }
+    -- else
+    --     local _, method, ts_s, zoneID_s, zoneParentID_s, zoneName, zoneParentName, spotter = strsplit("~", text)
+    --     local shardID, guid = "unknown", "unknown"
+    --     crateInfo = {
+    --         guid=guid,
+    --         method=method,
+    --         ts=tonumber(ts_s),
+    --         zoneID=tonumber(zoneID_s),
+    --         shardID=shardID,
+    --         spotter=spotter
+    --     }
     end
 
-    local crateInfo = {
-        guid=guid,
-        method=method,
-        ts=tonumber(ts_s),
-        zoneID=tonumber(zoneID_s),
-        shardID=shardID,
-        spotter=spotter
-    }
+    DevTools_Dump(crateInfo)
     -- NS.debugPrint("Recieved addon message from", sender, "-", text)
     if sendType == "SPOT_V2" then
         NS.announceCrate(crateInfo)

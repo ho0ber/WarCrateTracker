@@ -40,7 +40,7 @@ end
 local function saveCrateToDB(crateInfo)
     local key = nil
     local zoneConfig = NS.zoneConfig[crateInfo.zoneID]
-    if zoneConfig.remap ~= nil then
+    if zoneConfig ~= nil and zoneConfig.remap ~= nil then
         key = generateKey(zoneConfig.remap, crateInfo.shardID)
     else 
         key = generateKey(crateInfo.zoneID, crateInfo.shardID)
