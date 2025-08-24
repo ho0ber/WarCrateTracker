@@ -66,7 +66,6 @@ local function checkVignette(vignetteGUID)
 
     local vignetteInfo = C_VignetteInfo.GetVignetteInfo(vignetteGUID)
     if vignetteInfo ~= nil and vignetteInfo.name == "War Supply Crate" then
-        print(vignetteInfo.vignetteID)
         method = NS.crateVignetteIDs[vignetteInfo.vignetteID]
         if method ~= nil then
             if method.name == "plane" then
@@ -102,3 +101,6 @@ local function superTrackingChanged(event, ...)
     checkVignette(vignetteGUID)
 end
 NS.superTrackingChanged = superTrackingChanged
+
+
+/run for _,guid in ipairs(C_VignetteInfo.GetVignettes()) do print(guid); DevTools_Dump(C_VignetteInfo.GetVignetteInfo(guid)) end
