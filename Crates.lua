@@ -1,112 +1,126 @@
 local addonName, NS = ...
 
-local function convertDBEntry(zoneID, entry)
-    if type(entry) == "table" then
-        return entry
-    end
-    local zoneInfo = C_Map.GetMapInfo(zoneID)
-    local zoneParentID = zoneInfo.parentMapID
-    local zoneParentName = C_Map.GetMapInfo(zoneParentID).name
-    local player = UnitName("player")
-    local zoneName = zoneInfo.name
-    return {method="unknown", ts=entry, zoneID=zoneID, zoneParentID=zoneParentID, zoneName=zoneName, zoneParentName=zoneParentName, spotter=player}
-end
-
-local function abbreviateMethod(crateInfo)
-    local abbreviation = NS.methods[crateInfo.method]
-    if abbreviation ~= nil then
-        return abbreviation
-    end
-    return "?"
-end
-NS.abbreviateMethod = abbreviateMethod
-
-local function convertDB()
-    for k,v in pairs(crateDB) do
-        crateDB[k] = convertDBEntry(k,v)
-    end
-end
-NS.convertDB = convertDB
-
 local function shouldAnnounce(crateInfo)
-
-    if crateInfo.zoneParentID == 2274 or crateInfo.zoneParentID == 2214 then
-        return settings["twwAnnounce"]
+    local zoneConfig = NS.zoneConfig[crateInfo.zoneID]
+    if zoneConfig.exp == "TWW" and settings["twwAnnounce"] then
+        return true
+    elseif zoneConfig.exp == "DF" and settings["dfAnnounce"] then
+        return true
     end
-    if crateInfo.zoneParentID == 1978 then
-        return settings["dfAnnounce"]
-    end
 
-    return false -- don't announce unknown zones
+    return false
 end
 NS.shouldAnnounce = shouldAnnounce
 
-local function shouldTrack(zoneParentID)
-    return not (((zoneParentID == 2274 or zoneParentID == 2214) and not settings["twwTrack"]) or (zoneParentID == 1978 and not settings["dfTrack"]))
+local function shouldTrack(crateInfo)
+    local zoneConfig = NS.zoneConfig[crateInfo.zoneID]
+    if zoneConfig.exp == "TWW" and settings["twwTrack"] then
+        return true
+    elseif zoneConfig.exp == "DF" and settings["dfTrack"] then
+        return true
+    end
+
+    return false
 end
 NS.shouldTrack = shouldTrack
 
-local function shouldWarn(zoneParentID)
-    return not (((zoneParentID == 2274 or zoneParentID == 2214) and not settings["twwWarn"]) or (zoneParentID == 1978 and not settings["dfWarn"]))
+local function shouldWarn(crateInfo)
+    local zoneConfig = NS.zoneConfig[crateInfo.zoneID]
+    if zoneConfig.exp == "TWW" and settings["twwWarn"] then
+        return true
+    elseif zoneConfig.exp == "DF" and settings["dfWarn"] then
+        return true
+    end
+
+    return false
 end
 NS.shouldWarn = shouldWarn
 
-local function genCrateInfo(method)
+local function getShardFromGUID(guid)
+    local _, _, _, _, shard_id, _ = strsplit("-", guid, 6)
+    return shard_id
+end
+NS.getShardFromGUID = getShardFromGUID
+
+local function genCrateInfo(vignetteGUID)
     local zoneID = C_Map.GetBestMapForUnit("player")
-    if zoneID ~= nil then
-        local zoneName = C_Map.GetMapInfo(zoneID).name
-        local zoneParentID = C_Map.GetMapInfo(zoneID).parentMapID
-        local zoneParentName = C_Map.GetMapInfo(zoneParentID).name
-        local player = UnitName("player")
-        local curTime = GetServerTime()
-        return {method=method, ts=curTime, zoneID=zoneID, zoneParentID=zoneParentID, zoneName=zoneName, zoneParentName=zoneParentName, spotter=player}
+    if zoneID == nil then
+        return nil
     end
-    return nil
+    
+    local zoneConfig = NS.zoneConfig[zoneID]
+    if zoneConfig == nil then
+        return nil
+    end
+    if zoneConfig.remap ~= nil then
+        zoneConfig = NS.zoneConfig[zoneConfig.remap]
+    end
+
+    local vignetteInfo = C_VignetteInfo.GetVignetteInfo(vignetteGUID)
+    if vignetteInfo == nil then
+        return nil
+    end
+
+    local shardID = getShardFromGUID(vignetteGUID)
+    local method = NS.crateVignetteIDs[vignetteInfo.vignetteID]
+    if method == nil then
+        method = {name="unknown", abbr="?"}
+    end
+
+    local player = UnitName("player")
+    local curTime = GetServerTime()
+
+    return {
+        guid=vignetteGUID,
+        method=method,
+        ts=curTime,
+        zoneID=zoneID,
+        shardID=shardID,
+        spotter=player
+    }
 end
 
 local function crateIsDupe(crateInfo)
-    if crateDB[crateInfo.zoneID] == nil then
+    local existing = NS.getCrateFromDB(crateInfo.zoneID, crateInfo.shardID)
+    if existing == nil then
         return false
     end
 
-    return (crateInfo.ts - crateDB[crateInfo.zoneID].ts) <= 180
-end
+    if existing.guid == crateInfo.guid then
+        return true
+    end
 
-local function sendCrate(crateInfo, sendType)
-    local message = strjoin("~", sendType, crateInfo.method, tostring(crateInfo.ts), tostring(crateInfo.zoneID), tostring(crateInfo.zoneParentID), crateInfo.zoneName, crateInfo.zoneParentName, crateInfo.spotter)
-    NS.debugPrint("sending:",message)
-    ChatThrottleLib:SendAddonMessage("NORMAL",  "WarCrateTracker", message, "GUILD") --"CHANNEL", "WarCrateTracker");
-    ChatThrottleLib:SendAddonMessage("NORMAL",  "WarCrateTracker", message, "PARTY")
+    return (crateInfo.ts - existing.ts) <= 180
 end
 
 local function recordCrate(crateInfo)
-    if not (crateInfo.zoneParentID == 2274 or crateInfo.zoneParentID == 2214 or crateInfo.zoneParentID == 1978) then
-        NS.debugPrint("Ignoring bad crate - zoneParentID", crateInfo.zoneParentID, " not in whitelist")
-        return
-    end
+    local existing = NS.getCrateFromDB(crateInfo.zoneID, crateInfo.shardID)
 
-    if crateDB[crateInfo.zoneID] ~= nil and crateDB[crateInfo.zoneID].ts > crateInfo.ts then
+    if existing ~= nil and existing.ts > crateInfo.ts then
         NS.debugPrint("Ignoring crate information from", crateInfo.spotter, "because we have a newer spot")
         return
     end
 
-    if crateDB[crateInfo.zoneID] ~= nil and crateDB[crateInfo.zoneID].ts + 600 > crateInfo.ts and (crateInfo.method == "unclaimed" or crateInfo.method == "claimed") then
+    if existing  ~= nil and existing.ts + 600 > crateInfo.ts and (crateInfo.method.name == "unclaimed" or crateInfo.method.name == "claimed") then
         NS.debugPrint("Ignoring crate information from", crateInfo.spotter, "because we have a better spot")
         return
     end
     
-    crateDB[crateInfo.zoneID] = crateInfo
-
+    NS.debugPrint("Writing crate to db", crateInfo.guid)
+    NS.saveCrateToDB(crateInfo)
 end
-NS.sendCrate = sendCrate
+NS.recordCrate = recordCrate
 
 local function sendAllCrates(sendType)
     local t = sendType
+    local curTime = GetServerTime()
     for _, crateInfo in pairs(crateDB) do
         if crateInfo ~= nil then
-            sendCrate(crateInfo, t)
-            if t == "LOGIN" then
-                t = "UPDATE" -- Hacky solution to ensure other clients don't reply ALL crates to EACH send on login
+            if curTime - crateInfo.ts <= 86400 then 
+                NS.sendCrate(crateInfo, t)
+                if t == "REQUEST_V2" then
+                    t = "UPDATE_V2" -- Hacky solution to ensure other clients don't reply ALL crates to EACH send on login
+                end
             end
         end
     end
@@ -114,8 +128,9 @@ end
 NS.sendAllCrates = sendAllCrates
 
 local function checkDelta(crateInfo)
-    if crateDB[crateInfo.zoneID] ~= nil then
-        local delta = crateInfo.ts - crateDB[crateInfo.zoneID].ts
+    local existing = NS.getCrateFromDB(crateInfo.zoneID, crateInfo.shardID)
+    if existing ~= nil then
+        local delta = crateInfo.ts - existing.ts
         if delta < 300 and delta > 300 then
             NS.debugPrint("Ignoring announcement from", crateInfo.spotter, "delta is", delta)
             return false
@@ -126,18 +141,22 @@ end
 
 local function announceCrate(crateInfo)
     if shouldAnnounce(crateInfo) and checkDelta(crateInfo) then
-        RaidNotice_AddMessage(RaidWarningFrame, NS.MSG_CRATE_WARN:format(crateInfo.zoneName, crateInfo.zoneParentName), ChatTypeInfo["RAID_WARNING"]);
+        local zoneConfig = NS.zoneConfig[crateInfo.zoneID]
+        RaidNotice_AddMessage(RaidWarningFrame, NS.MSG_CRATE_WARN:format(zoneConfig.name, zoneConfig.exp), ChatTypeInfo["RAID_WARNING"]);
         PlaySoundFile("Interface\\AddOns\\WarCrateTracker\\shipswhistle.ogg", "Master")
-        print(NS.MSG_CRATE_SPOT:format(crateInfo.zoneName, crateInfo.zoneParentName, crateInfo.spotter, crateInfo.method))
+        print(NS.MSG_CRATE_SPOT:format(zoneConfig.name, zoneConfig.exp, crateInfo.spotter, crateInfo.method.name))
     end
 end
+NS.announceCrate = announceCrate
 
-local function crateSpotted(method)
-    local crateInfo = genCrateInfo(method)
+local function crateSpotted(vignetteGUID)
+    local crateInfo = genCrateInfo(vignetteGUID)
     if crateInfo ~= nil then
-        NS.debugPrint("Crate spotted in", crateInfo.zoneName, "via method", crateInfo.method, "- deciding if should be announced")
+        local zoneConfig = NS.zoneConfig[crateInfo.zoneID]
+        if zoneConfig == nil then return nil end
+        NS.debugPrint("Crate spotted in", zoneConfig.name, "via method", crateInfo.method.name, "- deciding if should be announced")
         if not crateIsDupe(crateInfo) then
-            sendCrate(crateInfo, "SPOT")
+            NS.sendCrate(crateInfo, "SPOT_V2")
             announceCrate(crateInfo)
             recordCrate(crateInfo)
         end
@@ -145,55 +164,8 @@ local function crateSpotted(method)
 end
 NS.crateSpotted = crateSpotted
 
-local function processCrateMessage(text, sender)
-    local senderName, senderRealm = strsplit("-", sender, 2)
-    local playerName, playerRealm = UnitFullName("player")
-    if senderName == playerName and senderRealm == playerRealm then
-        NS.debugPrint("Ignoring a message from myself:",sender,text)
-        return
-    end
-    local sendType, method, ts_s, zoneID_s, zoneParentID_s, zoneName, zoneParentName, spotter = strsplit("~", text)
-    local crateInfo = {method=method, ts=tonumber(ts_s), zoneID=tonumber(zoneID_s), zoneParentID=tonumber(zoneParentID_s), zoneName=zoneName, zoneParentName=zoneParentName, spotter=spotter}
-    NS.debugPrint("Recieved addon message from", sender, "-", text)
-    if sendType == "SPOT" then
-        announceCrate(crateInfo)
-        recordCrate(crateInfo)
-    elseif sendType == "LOGIN" then
-        recordCrate(crateInfo)
-        NS.debugPrint("Heard LOGIN message - responding with our crateDB data")
-        sendAllCrates("UPDATE")
-    elseif sendType == "UPDATE" then
-        recordCrate(crateInfo)
-    end
-end
-NS.processCrateMessage = processCrateMessage
-
-local function compareZones(z1, z2)
-    local curTime = GetServerTime()
-    local ts1 = NS.nextCrateTime(crateDB[z1], curTime)
-    local ts2 = NS.nextCrateTime(crateDB[z2], curTime)
-    if ts1 == nil then
-        return false
-    elseif ts2 == nil then
-        return true
-    end
-    return ts1 < ts2
-end
-NS.compareZones = compareZones
-
-local function sortedZones()
-    local zones = {}
-    for k, v in pairs(crateDB) do
-        if v ~= nil then
-            table.insert(zones, k)
-        end
-    end
-    table.sort(zones, compareZones)
-    return zones
-end
-NS.sortedZones = sortedZones
-
 local function warnCrate(crateInfo, curTime)
+    local zoneConfig = NS.zoneConfig[crateInfo.zoneID]
     local nextTS = NS.nextCrateTime(crateInfo, curTime)
     if nextTS == nil then
         NS.debugPrint("nexTS was nil???", crateInfo.zoneID, crateInfo.ts, curTime)
@@ -204,7 +176,7 @@ local function warnCrate(crateInfo, curTime)
     if nextIn <= 180 then
         local alertKey = format("%i-%i", crateInfo.zoneID, nextTS)
         if NS.alerted[alertKey] == nil then
-            RaidNotice_AddMessage(RaidWarningFrame,NS.MSG_CRATE_ALERT:format(crateInfo.zoneName, crateInfo.zoneParentName, NS.displayTime(nextIn)),ChatTypeInfo["RAID_WARNING"]);
+            RaidNotice_AddMessage(RaidWarningFrame,NS.MSG_CRATE_ALERT:format(zoneConfig.name, zoneConfig.exp, NS.displayTime(nextIn)),ChatTypeInfo["RAID_WARNING"]);
             PlaySound(8232, "Master")
             NS.alerted[alertKey] = true
         end

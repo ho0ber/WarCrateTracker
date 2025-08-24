@@ -23,7 +23,8 @@ NS.displayTime = displayTime
 
 local function nextCrateTime(crateInfo, curTime)
     if crateInfo ~= nil then
-        local freq = NS.frequency[crateInfo.zoneParentID]
+        local zoneConfig = NS.zoneConfig[crateInfo.zoneID]
+        local freq = zoneConfig.frequency
         if freq ~= nil then
             local nextCrateTS = crateInfo.ts
             local duration = curTime-crateInfo.ts
@@ -38,13 +39,10 @@ NS.nextCrateTime = nextCrateTime
 
 
 local function lastCrateStaleness(crateInfo, curTime)
-    if NS.frequency[crateInfo.zoneParentID] ~= nil then
-        local freq = NS.frequency[crateInfo.zoneParentID]
-        local duration = curTime-crateInfo.ts
-        return floor(duration/freq)
-    else
-        return nil
-    end
+    local zoneConfig = NS.zoneConfig[crateInfo.zoneID]
+    local freq = zoneConfig.frequency
+    local duration = curTime-crateInfo.ts
+    return floor(duration/freq)
 end
 NS.lastCrateStaleness = lastCrateStaleness
 
@@ -54,7 +52,7 @@ local function nextCrateText(crateInfo, curTime)
     if ts ~= nil then
         nc = tostring(displayTime(ts-curTime))
     else
-        nc = format("Unknown: %s (%i) has no frequency configured", crateInfo.zoneParentName, crateInfo.zoneParentID)
+        nc = format("Unknown: %s (%i) has no frequency configured", crateInfo.zoneID, crateInfo.exp)
     end
     return nc
 end
