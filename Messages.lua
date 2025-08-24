@@ -31,9 +31,7 @@ local function processCrateMessage(text, sender)
     local sendType, _ = strsplit("~", text, 2)
     local crateInfo = nil
     if sendType == "SPOT_V2" or sendType == "REQUEST_V2" or sendType == "UPDATE_V2" then
-        print(text)
         local _, method_id, ts_s, zoneID_s, spotter, shardID, guid = strsplit("~", text)
-        print(method_id, ts_s, zoneID_s, spotter, shardID, guid)
         local method = NS.crateVignetteIDs[tonumber(method_id)]
         crateInfo = {
             guid=guid,
