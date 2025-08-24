@@ -102,7 +102,6 @@ local function addonLoaded(event, ...)
         setupExecuted = true
         print("WarCrateTracker loaded! /wct to toggle window")
         C_ChatInfo.RegisterAddonMessagePrefix("WarCrateTracker")
-        -- crateDB = nil
         if crateDB == nil then
             NS.debugPrint("Empty War Crate Database - initializing!")
             crateDB = {}
@@ -111,7 +110,7 @@ local function addonLoaded(event, ...)
             NS.debugPrint("Empty War Crate Settings - initializing!")
             settings = {}
         end
-        -- NS.convertDB()
+        NS.convertDB()
         NS.sendAllCrates("REQUEST_V2")
         NS.configureSettings()
 

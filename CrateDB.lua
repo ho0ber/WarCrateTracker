@@ -54,7 +54,16 @@ local function saveCrateToDB(crateInfo)
     end
 end
 
-
+local function convertDB()
+    for key, crateInfo in pairs(crateDB) do
+        if key ~= nil then
+            local found = string.find(key, "|")
+            if found == nil then
+                crateDB[key] = nil
+            end
+        end
+    end
+end
 
 local function sortedCrateKeys()
     local keys = {}
@@ -72,3 +81,4 @@ end
 NS.getCrateFromDB = getCrateFromDB
 NS.saveCrateToDB = saveCrateToDB
 NS.sortedCrateKeys = sortedCrateKeys
+NS.convertDB = convertDB
