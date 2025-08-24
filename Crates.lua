@@ -4,14 +4,10 @@ local function shouldAnnounce(crateInfo)
     local zoneConfig = NS.zoneConfig[crateInfo.zoneID]
     if zoneConfig.exp == "TWW" and settings["twwAnnounce"] then
         return true
+    elseif zoneConfig.exp == "DF" and settings["dfAnnounce"] then
+        return true
     end
 
-    -- if crateInfo.zoneParentID == 2274 or crateInfo.zoneParentID == 2214 then
-    --     return settings["twwAnnounce"]
-    -- end
-    -- if crateInfo.zoneParentID == 1978 then
-    --     return settings["dfAnnounce"]
-    -- end
     return false
 end
 NS.shouldAnnounce = shouldAnnounce
@@ -20,9 +16,11 @@ local function shouldTrack(crateInfo)
     local zoneConfig = NS.zoneConfig[crateInfo.zoneID]
     if zoneConfig.exp == "TWW" and settings["twwTrack"] then
         return true
+    elseif zoneConfig.exp == "DF" and settings["dfTrack"] then
+        return true
     end
+
     return false
-    -- return not (((zoneParentID == 2274 or zoneParentID == 2214) and not settings["twwTrack"]) or (zoneParentID == 1978 and not settings["dfTrack"]))
 end
 NS.shouldTrack = shouldTrack
 
@@ -30,9 +28,11 @@ local function shouldWarn(crateInfo)
     local zoneConfig = NS.zoneConfig[crateInfo.zoneID]
     if zoneConfig.exp == "TWW" and settings["twwWarn"] then
         return true
+    elseif zoneConfig.exp == "DF" and settings["dfWarn"] then
+        return true
     end
+
     return false
-    -- return not (((zoneParentID == 2274 or zoneParentID == 2214) and not settings["twwWarn"]) or (zoneParentID == 1978 and not settings["dfWarn"]))
 end
 NS.shouldWarn = shouldWarn
 

@@ -15,8 +15,6 @@ function SlashCmdList.WCT(msg)
     elseif starts_with(msg, "del ") then
         local arg = msg:match("%w+$")
         crateDB[NS.menu[arg]] = nil
-    -- elseif msg == "spot" then
-    --     NS.crateSpotted("manual")
     else
         if NS.mainFrame:IsShown() then
             NS.mainFrame:Hide()
