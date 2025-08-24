@@ -10,7 +10,6 @@ NS.menu = {}
 NS.timer = nil
 NS.settingsCategoryID = nil
 NS.seenVignetteGUIDs = {}
--- NS.frequency = {[2274]=1095,[1978]=2720,[2214]=1095}
 NS.crateVignetteIDs = {
     [3689] = {name="plane", abbr="^", vignetteID=3689},
     [2967] = {name="parachute", abbr="*", vignetteID=2967},

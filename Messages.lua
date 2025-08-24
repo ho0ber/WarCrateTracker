@@ -10,12 +10,6 @@ local function sendCrate(crateInfo, sendType)
         NS.debugPrint("sending:",message)
         ChatThrottleLib:SendAddonMessage("NORMAL",  "WarCrateTracker", message, "GUILD") --"CHANNEL", "WarCrateTracker");
         ChatThrottleLib:SendAddonMessage("NORMAL",  "WarCrateTracker", message, "PARTY")
-    -- else
-        -- NS.debugPrint("Skipping send of old style message")
-        -- local message = strjoin("~", sendType, crateInfo.method, tostring(crateInfo.ts), tostring(crateInfo.zoneID), tostring(zoneParentID), zoneConfig.name, zoneParentName, crateInfo.spotter)
-        -- NS.debugPrint("sending:",message)
-        -- ChatThrottleLib:SendAddonMessage("NORMAL",  "WarCrateTracker", message, "GUILD") --"CHANNEL", "WarCrateTracker");
-        -- ChatThrottleLib:SendAddonMessage("NORMAL",  "WarCrateTracker", message, "PARTY")
     end
 end
 NS.sendCrate = sendCrate
@@ -24,7 +18,7 @@ local function processCrateMessage(text, sender)
     local senderName, senderRealm = strsplit("-", sender, 2)
     local playerName, playerRealm = UnitFullName("player")
     if senderName == playerName and senderRealm == playerRealm then
-        -- NS.debugPrint("Ignoring a message from myself:",sender,text)
+        -- Ignoring a message from myself
         return
     end
 
@@ -54,7 +48,6 @@ local function processCrateMessage(text, sender)
         }
     end
 
-    -- NS.debugPrint("Recieved addon message from", sender, "-", text)
     if sendType == "SPOT_V2" then
         NS.announceCrate(crateInfo)
         NS.recordCrate(crateInfo)
@@ -66,13 +59,6 @@ local function processCrateMessage(text, sender)
         NS.recordCrate(crateInfo)
     elseif sendType == "SPOT" then
         NS.announceCrate(crateInfo)
-        -- recordCrate(crateInfo)
-    -- elseif sendType == "LOGIN" then
-    --     recordCrate(crateInfo)
-    --     NS.debugPrint("Heard LOGIN message - responding with our crateDB data")
-    --     sendAllCrates("UPDATE")
-    -- elseif sendType == "UPDATE" then
-    --     recordCrate(crateInfo)
     end
 end
 NS.processCrateMessage = processCrateMessage

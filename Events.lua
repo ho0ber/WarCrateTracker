@@ -33,8 +33,6 @@ local function updateCurrentShard(guid)
 end
 
 local function updateFrame(curTime)
-    -- updateCurrentShard()
-    -- PlaySound(808)
     local menuIndex = 1
     local labelText = ""
     local timerText = ""
@@ -63,12 +61,8 @@ local function updateFrame(curTime)
     end
     if NS.currentShard == nil then
         NS.mainFrame.title:SetText("WarCrateTracker - Shard: ?")
-        -- labelText = labelText .. "Current Shard: ?\n"
-        -- timerText = timerText .. "\n"
     else 
         NS.mainFrame.title:SetText("WarCrateTracker - Shard: " .. NS.currentShard)
-        -- labelText = labelText .. "Current Shard: " .. NS.currentShard .. "\n"
-        -- timerText = timerText .. "\n"
     end
     if labelText == "" and timerText == "" then
         labelText = "No timers found. Please add zones to\ntracking in settings or wait for a drop."
@@ -80,8 +74,6 @@ local function updateFrame(curTime)
     NS.mainFrame:SetSize(w+35, h+50)
 end
 NS.updateFrame = updateFrame
-
-
 
 local function checkTimers()
     local curTime = GetServerTime()
@@ -192,9 +184,6 @@ end)
 
 NS.mainFrame:RegisterEvent("ADDON_LOADED")
 NS.mainFrame:RegisterEvent("CHAT_MSG_ADDON")
--- NS.mainFrame:RegisterEvent("CHAT_MSG_MONSTER_SAY")
--- NS.mainFrame:RegisterEvent("PLAYER_TARGET_CHANGED")
-
 NS.mainFrame:RegisterEvent("SUPER_TRACKING_CHANGED")
 NS.mainFrame:RegisterEvent("VIGNETTES_UPDATED")
 NS.mainFrame:RegisterEvent("VIGNETTE_MINIMAP_UPDATED")
@@ -202,5 +191,9 @@ NS.mainFrame:RegisterEvent("PLAYER_ENTERING_WORLD")
 NS.mainFrame:RegisterEvent("UPDATE_MOUSEOVER_UNIT")
 NS.mainFrame:RegisterEvent("ZONE_CHANGED")
 NS.mainFrame:RegisterEvent("ZONE_CHANGED_NEW_AREA")
+
+-- These will be added back eventually
+-- NS.mainFrame:RegisterEvent("CHAT_MSG_MONSTER_SAY")
+-- NS.mainFrame:RegisterEvent("PLAYER_TARGET_CHANGED")
 
 NS.mainFrame:SetScript("OnEvent", OnEvent)
