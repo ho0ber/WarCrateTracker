@@ -53,8 +53,8 @@ local function updateFrame(curTime)
                 end
                 if stale <= settings.staleness then
                     NS.menu[tostring(menuIndex)] = crateKey
-                    labelText = labelText .. color .. NS.WINDOW_LABEL:format(menuIndex, zoneConfig.exp, zoneConfig.name, crateInfo.shardID, stale) .. "|r" .. "\n"
-                    timerText = timerText .. NS.WINDOW_TIMER:format(crateInfo.method.abbr, nextCrateText) .. "\n"
+                    labelText = labelText .. color .. NS.WINDOW_LABEL:format(menuIndex, zoneConfig.exp, zoneConfig.name, crateInfo.shardID, stale) .. "|r\n"
+                    timerText = timerText .. color .. NS.WINDOW_TIMER:format(crateInfo.method.abbr, nextCrateText) .. "|r\n"
                     menuIndex = menuIndex + 1
                 end
             end
@@ -62,11 +62,13 @@ local function updateFrame(curTime)
 
     end
     if NS.currentShard == nil then
-        labelText = labelText .. "Current Shard: ?\n"
-        timerText = timerText .. "\n"
+        NS.mainFrame.title:SetText("WarCrateTracker - Shard: ?")
+        -- labelText = labelText .. "Current Shard: ?\n"
+        -- timerText = timerText .. "\n"
     else 
-        labelText = labelText .. "Current Shard: " .. NS.currentShard .. "\n"
-        timerText = timerText .. "\n"
+        NS.mainFrame.title:SetText("WarCrateTracker - Shard: " .. NS.currentShard)
+        -- labelText = labelText .. "Current Shard: " .. NS.currentShard .. "\n"
+        -- timerText = timerText .. "\n"
     end
     if labelText == "" and timerText == "" then
         labelText = "No timers found. Please add zones to\ntracking in settings or wait for a drop."
