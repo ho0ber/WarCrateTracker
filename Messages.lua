@@ -43,17 +43,17 @@ local function processCrateMessage(text, sender)
             shardID=shardID,
             spotter=spotter
         }
-    -- else
-    --     local _, method, ts_s, zoneID_s, zoneParentID_s, zoneName, zoneParentName, spotter = strsplit("~", text)
-    --     local shardID, guid = "unknown", "unknown"
-    --     crateInfo = {
-    --         guid=guid,
-    --         method=method,
-    --         ts=tonumber(ts_s),
-    --         zoneID=tonumber(zoneID_s),
-    --         shardID=shardID,
-    --         spotter=spotter
-    --     }
+    else
+        local _, method, ts_s, zoneID_s, zoneParentID_s, zoneName, zoneParentName, spotter = strsplit("~", text)
+        local shardID, guid = "unknown", "unknown"
+        crateInfo = {
+            guid=guid,
+            method=method,
+            ts=tonumber(ts_s),
+            zoneID=tonumber(zoneID_s),
+            shardID=shardID,
+            spotter=spotter
+        }
     end
 
     DevTools_Dump(crateInfo)
