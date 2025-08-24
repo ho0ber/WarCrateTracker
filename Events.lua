@@ -3,7 +3,37 @@ local addonName, NS = ...
 local lastx, lasty = 0, 0
 local setupExecuted = false
 
+local function getRemappedZone()
+    local zoneID = C_Map.GetBestMapForUnit("player")
+    local zoneConfig = NS.zoneConfig[zoneID]
+    if zoneConfig ~= nil and zoneConfig.remap ~= nil then
+        return zoneConfig.remap
+    end
+    return zoneID
+end
+
+local function updateCurrentShard(guid)
+    local zoneID = getRemappedZone()
+    if zoneID ~= NS.currentZone then
+        NS.currentShard = nil
+        NS.currentZone = zoneID
+    end
+    if guid == nil then
+        local vignetteGUIDs = C_VignetteInfo.GetVignettes()
+        for _,vignetteGUID in ipairs(vignetteGUIDs) do
+            NS.currentShard = NS.getShardFromGUID(vignetteGUID)
+            break
+        end
+    else
+        local unitType, _ = strsplit("-", guid, 2)
+        if unitType == "Creature" then
+            NS.currentShard = NS.getShardFromGUID(guid)
+        end
+    end
+end
+
 local function updateFrame(curTime)
+    -- updateCurrentShard()
     -- PlaySound(808)
     local menuIndex = 1
     local labelText = ""
@@ -15,14 +45,28 @@ local function updateFrame(curTime)
                 local zoneConfig = NS.zoneConfig[crateInfo.zoneID]
                 local nextCrateText = NS.nextCrateText(crateInfo, curTime)
                 local stale = NS.lastCrateStaleness(crateInfo, curTime)
+                local color = "";
+                if crateInfo.shardID == NS.currentShard then
+                    color = "|cff00dd00"
+                elseif crateInfo.zoneID ~= NS.currentZone then
+                    color = "|cffcccccc"
+                end
                 if stale <= settings.staleness then
                     NS.menu[tostring(menuIndex)] = crateKey
-                    labelText = labelText .. NS.WINDOW_LABEL:format(menuIndex, zoneConfig.exp, zoneConfig.name, crateInfo.shardID, stale) .. "\n"
+                    labelText = labelText .. color .. NS.WINDOW_LABEL:format(menuIndex, zoneConfig.exp, zoneConfig.name, crateInfo.shardID, stale) .. "|r" .. "\n"
                     timerText = timerText .. NS.WINDOW_TIMER:format(crateInfo.method.abbr, nextCrateText) .. "\n"
                     menuIndex = menuIndex + 1
                 end
             end
         end
+
+    end
+    if NS.currentShard == nil then
+        labelText = labelText .. "Current Shard: ?\n"
+        timerText = timerText .. "\n"
+    else 
+        labelText = labelText .. "Current Shard: " .. NS.currentShard .. "\n"
+        timerText = timerText .. "\n"
     end
     if labelText == "" and timerText == "" then
         labelText = "No timers found. Please add zones to\ntracking in settings or wait for a drop."
@@ -106,16 +150,24 @@ end
 local function OnEvent(self, event, ...)
     if event == "VIGNETTE_MINIMAP_UPDATED" and NS.vignetteMinimapUpdated ~= nil then
         NS.vignetteMinimapUpdated(event, ...)
+        updateCurrentShard()
     elseif event == "VIGNETTES_UPDATED" and NS.vignettesUpdated ~= nil then
         NS.vignettesUpdated(event, ...)
+        updateCurrentShard()
     elseif event == "SUPER_TRACKING_CHANGED" then
         NS.superTrackingChanged(event, ...)
+        updateCurrentShard()
     elseif event == "CHAT_MSG_ADDON" then
         chatMsgAddon(event, ...)
     elseif event == "ADDON_LOADED" then
         addonLoaded(event, ...)
     elseif event == "PLAYER_ENTERING_WORLD" then
         playerEnteringWorld(event, ...)
+        updateCurrentShard()
+    elseif event == "UPDATE_MOUSEOVER_UNIT" then
+        updateCurrentShard(UnitGUID("mouseover"))
+    elseif event == "ZONE_CHANGED" or event == "ZONE_CHANGED_NEW_AREA" then
+        updateCurrentShard()
     end
 end
 
@@ -146,5 +198,8 @@ NS.mainFrame:RegisterEvent("SUPER_TRACKING_CHANGED")
 NS.mainFrame:RegisterEvent("VIGNETTES_UPDATED")
 NS.mainFrame:RegisterEvent("VIGNETTE_MINIMAP_UPDATED")
 NS.mainFrame:RegisterEvent("PLAYER_ENTERING_WORLD")
+NS.mainFrame:RegisterEvent("UPDATE_MOUSEOVER_UNIT")
+NS.mainFrame:RegisterEvent("ZONE_CHANGED")
+NS.mainFrame:RegisterEvent("ZONE_CHANGED_NEW_AREA")
 
 NS.mainFrame:SetScript("OnEvent", OnEvent)

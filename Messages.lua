@@ -48,7 +48,7 @@ local function processCrateMessage(text, sender)
         local shardID, guid = "unknown", "unknown"
         crateInfo = {
             guid=guid,
-            method=method,
+            method={name=method},
             ts=tonumber(ts_s),
             zoneID=tonumber(zoneID_s),
             shardID=shardID,

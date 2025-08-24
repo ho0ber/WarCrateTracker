@@ -1,5 +1,7 @@
 local addonName, NS = ...
 
+NS.currentShard = nil
+NS.currentZone = nil
 NS.recent = {}
 NS.last_timestamp = 0
 NS.debug = true

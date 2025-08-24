@@ -40,6 +40,7 @@ local function getShardFromGUID(guid)
     local _, _, _, _, shard_id, _ = strsplit("-", guid, 6)
     return shard_id
 end
+NS.getShardFromGUID = getShardFromGUID
 
 local function genCrateInfo(vignetteGUID)
     local zoneID = C_Map.GetBestMapForUnit("player")
