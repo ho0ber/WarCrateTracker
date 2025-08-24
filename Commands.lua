@@ -9,6 +9,9 @@ function SlashCmdList.WCT(msg)
     if msg == "clear" then
         crateDB = {}
         print("Cleared crate DB.")
+    elseif msg == "debug" then
+        NS.debug = not NS.debug
+        print("Debug set to " .. tostring(NS.debug))
     elseif starts_with(msg, "del ") then
         local arg = msg:match("%w+$")
         crateDB[NS.menu[arg]] = nil
