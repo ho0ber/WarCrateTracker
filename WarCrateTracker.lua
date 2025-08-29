@@ -11,10 +11,11 @@ NS.timer = nil
 NS.settingsCategoryID = nil
 NS.seenVignetteGUIDs = {}
 NS.crateVignetteIDs = {
-    [3689] = {name="plane", abbr="^", vignetteID=3689},
+    [3689] = {name="plane",     abbr="^", vignetteID=3689},
     [2967] = {name="parachute", abbr="*", vignetteID=2967},
     [6066] = {name="unclaimed", abbr="X", vignetteID=6066},
-    [6068] = {name="claimed", abbr="_", vignetteID=6068},
+    [6068] = {name="claimed",   abbr="_", vignetteID=6068},
+    [0]    = {name="guess",     abbr="G", vignetteID=0},
 }
 NS.zoneConfig = {
     -- The War Within, Khaz Algar
@@ -39,6 +40,17 @@ NS.zoneConfig = {
     [2151] = {exp="DF", name="Forbidden Reach",  shortname="Reach",  abbr="DF:FR", frequency=2720, remap=nil},
     [2133] = {exp="DF", name="Zarelek Cavern",   shortname="Cavern", abbr="DF:ZK", frequency=2720, remap=nil},
     [2200] = {exp="DF", name="Emerald Dream",    shortname="Dream",  abbr="DF:ED", frequency=2720, remap=nil},
+    -- BFA
+    [862]  = {exp="BFA", name="Zuldazar",         shortname="Zuld",  abbr="BFA:Zu", frequency=2720, remap=nil},
+    [1165] = {exp="BFA", name="Zuldazar",         shortname="Zuld",  abbr="BFA:Zu", frequency=2720, remap=862}, --Dazaralor 
+    [1163] = {exp="BFA", name="Zuldazar",         shortname="Zuld",  abbr="BFA:Zu", frequency=2720, remap=862}, --Dazaralor The Great Seal
+    [896]  = {exp="BFA", name="Drustvar",         shortname="Drust", abbr="BFA:Dr", frequency=2720, remap=nil},
+    [942]  = {exp="BFA", name="Stormsong Valley", shortname="Storm", abbr="BFA:SV", frequency=2720, remap=nil},
+    [895]  = {exp="BFA", name="Tiragarde Sound",  shortname="Tira",  abbr="BFA:TS", frequency=2720, remap=nil},
+    [1161] = {exp="BFA", name="Tiragarde Sound",  shortname="Tira",  abbr="BFA:TS", frequency=2720, remap=895}, --Boralus
+    [863]  = {exp="BFA", name="Nazmir",           shortname="Nazm",  abbr="BFA:Nz", frequency=2720, remap=nil},
+    [864]  = {exp="BFA", name="Vol'dun",          shortname="Nazm",  abbr="BFA:Nz", frequency=2720, remap=nil},
+    [1462] = {exp="BFA", name="Mechagon",         shortname="Mecha", abbr="BFA:Mg", frequency=2720, remap=nil},
 }
 
 NS.MSG_CRATE_WARN = "War Crate in %s - %s"

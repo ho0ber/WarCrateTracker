@@ -6,6 +6,8 @@ local function shouldAnnounce(crateInfo)
         return true
     elseif zoneConfig.exp == "DF" and settings["dfAnnounce"] then
         return true
+    elseif zoneConfig.exp == "BFA" and settings["bfaAnnounce"] then
+        return true
     end
 
     return false
@@ -18,6 +20,8 @@ local function shouldTrack(crateInfo)
         return true
     elseif zoneConfig.exp == "DF" and settings["dfTrack"] then
         return true
+    elseif zoneConfig.exp == "BFA" and settings["bfaTrack"] then
+        return true
     end
 
     return false
@@ -29,6 +33,8 @@ local function shouldWarn(crateInfo)
     if zoneConfig.exp == "TWW" and settings["twwWarn"] then
         return true
     elseif zoneConfig.exp == "DF" and settings["dfWarn"] then
+        return true
+    elseif zoneConfig.exp == "BFA" and settings["bfaWarn"] then
         return true
     end
 

@@ -12,7 +12,48 @@ local function configureSettings()
     updateMuteBounty() --so when we load the addon it applies the setting
 
     local category = Settings.RegisterVerticalLayoutCategory("WarCrateTracker")
+
+    do
+        local variable = "bfaAnnounce"
+        local name = "Battle For Azeroth - Announce"
+        local tooltip = "Make a sound and announce Battle For Azeroth crates"
+        local variableKey = "bfaAnnounce"
+        local variableTbl = settings
+        local defaultValue = true
     
+        local setting = Settings.RegisterAddOnSetting(category, variable, variableKey, variableTbl, type(defaultValue), name, defaultValue)
+        -- setting:SetValueChangedCallback(OnSettingChanged)
+        Settings.CreateCheckbox(category, setting, tooltip)
+    end
+
+    
+    do
+        local variable = "bfaTrack"
+        local name = "Battle For Azeroth - Track"
+        local tooltip = "Show Battle For Azeroth crates in /wct output"
+        local variableKey = "bfaTrack"
+        local variableTbl = settings
+        local defaultValue = true
+    
+        local setting = Settings.RegisterAddOnSetting(category, variable, variableKey, variableTbl, type(defaultValue), name, defaultValue)
+        -- setting:SetValueChangedCallback(OnSettingChanged)
+        Settings.CreateCheckbox(category, setting, tooltip)
+    end
+
+    
+    do
+        local variable = "bfaWarn"
+        local name = "Battle For Azeroth - Warn"
+        local tooltip = "Make a sound and warn before Battle For Azeroth crates will drop"
+        local variableKey = "bfaWarn"
+        local variableTbl = settings
+        local defaultValue = true
+    
+        local setting = Settings.RegisterAddOnSetting(category, variable, variableKey, variableTbl, type(defaultValue), name, defaultValue)
+        -- setting:SetValueChangedCallback(OnSettingChanged)
+        Settings.CreateCheckbox(category, setting, tooltip)
+    end
+
     do
         local variable = "dfAnnounce"
         local name = "Dragon Isles - Announce"
