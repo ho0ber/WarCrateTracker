@@ -18,9 +18,16 @@ local function generateKey(zoneID, shardID)
         NS.debugPrint("Cannot generate key - zoneID is nil")
         return nil
     end
+
     if shardID == nil then
         shardID = "nil"
     end
+
+    local zoneConfig = NS.zoneConfig[zoneID]
+    if zoneConfig ~= nil and zoneConfig.remap ~= nil then
+        return zoneConfig.remap .. "|" .. shardID
+    end
+
     return zoneID .. "|" .. shardID
 end
 
@@ -38,14 +45,7 @@ local function getCrateFromDB(zoneID, shardID)
 end
 
 local function saveCrateToDB(crateInfo)
-    local key = nil
-    local zoneConfig = NS.zoneConfig[crateInfo.zoneID]
-    if zoneConfig ~= nil and zoneConfig.remap ~= nil then
-        key = generateKey(zoneConfig.remap, crateInfo.shardID)
-    else 
-        key = generateKey(crateInfo.zoneID, crateInfo.shardID)
-    end
-    NS.debugPrint("key:", key)
+    local key = generateKey(crateInfo.zoneID, crateInfo.shardID)
     if key ~= nil then
         crateDB[key] = crateInfo
         NS.debugPrint("Saved crate", crateInfo.guid)

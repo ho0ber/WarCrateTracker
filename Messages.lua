@@ -1,6 +1,9 @@
 local addonName, NS = ...
 
 local function sendCrate(crateInfo, sendType)
+    if crateInfo.method.vignetteID == nil then
+        return
+    end
     local zoneConfig = NS.zoneConfig[crateInfo.zoneID]
     local zoneInfo = C_Map.GetMapInfo(crateInfo.zoneID)
     local zoneParentID = zoneInfo.parentMapID
