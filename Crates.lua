@@ -2,7 +2,9 @@ local addonName, NS = ...
 
 local function shouldAnnounce(crateInfo)
     local zoneConfig = NS.zoneConfig[crateInfo.zoneID]
-    if zoneConfig.exp == "TWW" and settings["twwAnnounce"] then
+    if zoneConfig == nil then
+        return false
+    elseif zoneConfig.exp == "TWW" and settings["twwAnnounce"] then
         return true
     elseif zoneConfig.exp == "DF" and settings["dfAnnounce"] then
         return true
@@ -16,7 +18,9 @@ NS.shouldAnnounce = shouldAnnounce
 
 local function shouldTrack(crateInfo)
     local zoneConfig = NS.zoneConfig[crateInfo.zoneID]
-    if zoneConfig.exp == "TWW" and settings["twwTrack"] then
+    if zoneConfig == nil then
+        return false
+    elseif zoneConfig.exp == "TWW" and settings["twwTrack"] then
         return true
     elseif zoneConfig.exp == "DF" and settings["dfTrack"] then
         return true
@@ -30,7 +34,9 @@ NS.shouldTrack = shouldTrack
 
 local function shouldWarn(crateInfo)
     local zoneConfig = NS.zoneConfig[crateInfo.zoneID]
-    if zoneConfig.exp == "TWW" and settings["twwWarn"] then
+    if zoneConfig == nil then
+        return false
+    elseif zoneConfig.exp == "TWW" and settings["twwWarn"] then
         return true
     elseif zoneConfig.exp == "DF" and settings["dfWarn"] then
         return true

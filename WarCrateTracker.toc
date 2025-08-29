@@ -1,5 +1,5 @@
 ## Interface: 110200
-## Version: 1.1.1
+## Version: 1.1.2
 ## Title: WarCrateTracker
 ## SavedVariables: crateDB, settings
 ## Notes: Announces, shares, and tracks the dropping of war crates
