@@ -1,5 +1,7 @@
 local addonName, NS = ...
 
+local announcedCrateGUIDs = {}
+
 local function shouldAnnounce(crateInfo)
     local zoneConfig = NS.zoneConfig[crateInfo.zoneID]
     if zoneConfig == nil then
@@ -152,7 +154,8 @@ local function checkDelta(crateInfo)
 end
 
 local function announceCrate(crateInfo)
-    if shouldAnnounce(crateInfo) and checkDelta(crateInfo) then
+    if shouldAnnounce(crateInfo) and announcedCrateGUIDs[crateInfo.guid] == nil and checkDelta(crateInfo) then
+        announcedCrateGUIDs[crateInfo.guid] = true
         local zoneConfig = NS.zoneConfig[crateInfo.zoneID]
         RaidNotice_AddMessage(RaidWarningFrame, NS.MSG_CRATE_WARN:format(zoneConfig.name, zoneConfig.exp), ChatTypeInfo["RAID_WARNING"]);
         PlaySoundFile("Interface\\AddOns\\WarCrateTracker\\shipswhistle.ogg", "Master")

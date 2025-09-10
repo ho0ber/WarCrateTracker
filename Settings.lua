@@ -191,6 +191,44 @@ local function configureSettings()
     end
 
     do
+        local variable = "lastSeenOnly"
+        local name = "Show Only Recently Seen Shards"
+        local tooltip = "Hides any crates from shards not seen within the recent shard threshold"
+        local variableKey = "lastSeenOnly"
+        local variableTbl = settings
+        local defaultValue = false
+    
+        local setting = Settings.RegisterAddOnSetting(category, variable, variableKey, variableTbl, type(defaultValue), name, defaultValue)
+        Settings.CreateCheckbox(category, setting, tooltip)
+    end
+
+    do
+        local name = "Recent Shard Threshold"
+        local variable = "recentShardThreshold"
+        local defaultValue = 2
+        local minValue = 0
+        local maxValue = 24
+        local step = 0.5
+
+
+    	local function GetValue()
+            return settings.recentShardThreshold or defaultValue
+        end
+    
+        local function SetValue(value)
+            settings.recentShardThreshold = value
+        end
+    
+        local setting = Settings.RegisterProxySetting(category, variable, type(defaultValue), name, defaultValue, GetValue, SetValue)
+        -- setting:SetValueChangedCallback(OnSettingChanged)
+    
+        local tooltip = "Filters shards that haven't been seen in this many hours"
+        local options = Settings.CreateSliderOptions(minValue, maxValue, step)
+        options:SetLabelFormatter(MinimalSliderWithSteppersMixin.Label.Right);
+        Settings.CreateSlider(category, setting, options, tooltip)
+    end
+
+    do
         local name = "ZoneMap Scale"
         local variable = "zoneMapScale"
         local defaultValue = 100

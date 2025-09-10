@@ -12,6 +12,20 @@ local function getRemappedZone()
     return zoneID
 end
 
+local function setCurrentShard(zoneID, shardID)
+    if zoneID == nil then
+        return
+    end
+    local now = GetTime()
+    NS.currentShard = shardID
+    if wctShardDB.lastSeen ~= nil then
+        wctShardDB.lastSeen[zoneID] = shardID
+    end
+    if wctShardDB.lastSeenAt ~= nil then
+        wctShardDB.lastSeenAt[zoneID .. "-" .. shardID] = now
+    end
+end
+
 local function updateCurrentShard(guid)
     local zoneID = getRemappedZone()
     if zoneID ~= NS.currentZone then
@@ -21,13 +35,13 @@ local function updateCurrentShard(guid)
     if guid == nil then
         local vignetteGUIDs = C_VignetteInfo.GetVignettes()
         for _,vignetteGUID in ipairs(vignetteGUIDs) do
-            NS.currentShard = NS.getShardFromGUID(vignetteGUID)
+            setCurrentShard(zoneID, NS.getShardFromGUID(vignetteGUID))
             break
         end
     else
         local unitType, _ = strsplit("-", guid, 2)
-        if unitType == "Creature" then
-            NS.currentShard = NS.getShardFromGUID(guid)
+        if unitType == "Creature" or unitType == "Cast" then
+            setCurrentShard(zoneID, NS.getShardFromGUID(guid))
         end
     end
 end
@@ -36,6 +50,7 @@ local function updateFrame(curTime)
     local menuIndex = 1
     local labelText = ""
     local timerText = ""
+    local now = GetTime()
     for _, crateKey in pairs(NS.sortedCrateKeys()) do
         local crateInfo = crateDB[crateKey]
         if crateInfo ~= nil then
@@ -49,11 +64,14 @@ local function updateFrame(curTime)
                 elseif crateInfo.zoneID ~= NS.currentZone then
                     color = "|cffcccccc"
                 end
-                if stale <= settings.staleness then
-                    NS.menu[tostring(menuIndex)] = crateKey
-                    labelText = labelText .. color .. NS.WINDOW_LABEL:format(menuIndex, zoneConfig.exp, zoneConfig.name, crateInfo.shardID, stale) .. "|r\n"
-                    timerText = timerText .. color .. NS.WINDOW_TIMER:format(crateInfo.method.abbr, nextCrateText) .. "|r\n"
-                    menuIndex = menuIndex + 1
+                if stale <= settings.staleness then --and (not settings.lastSeenOnly or crateInfo.shardID == wctShardDB.lastSeen[crateInfo.zoneID]) then
+                    local lastSeenAt = wctShardDB.lastSeenAt[crateInfo.zoneID .. "-" .. crateInfo.shardID]
+                        if not settings.lastSeenOnly or not settings.recentShardThreshold or (lastSeenAt ~= nil and now - lastSeenAt <= settings.recentShardThreshold * 60 * 60) then
+                        NS.menu[tostring(menuIndex)] = crateKey
+                        labelText = labelText .. color .. NS.WINDOW_LABEL:format(menuIndex, zoneConfig.exp, zoneConfig.name, crateInfo.shardID, stale) .. "|r\n"
+                        timerText = timerText .. color .. NS.WINDOW_TIMER:format(crateInfo.method.abbr, nextCrateText) .. "|r\n"
+                        menuIndex = menuIndex + 1
+                    end
                 end
             end
         end
@@ -101,6 +119,22 @@ local function addonLoaded(event, ...)
         if settings == nil then
             NS.debugPrint("Empty War Crate Settings - initializing!")
             settings = {}
+        end
+        if wctShardDB == nil then
+            NS.debugPrint("Empty wctShardDB - initializing!")
+            wctShardDB = {lastSeen={}, lastSeenAt={}}
+        end
+        if wctShardDB.lastSeenAt == nil then
+            wctShardDB.lastSeenAt = {}
+        end
+        if NS.t3 ~= nil then
+            if not settings.lastSeenOnly then
+                NS.t3:SetAtlas("GM-icon-visibleDis", false)
+                NS.t3p:SetAtlas("GM-icon-visibleDis-pressed", false)
+            else
+                NS.t3:SetAtlas("GM-icon-visible", false)
+                NS.t3p:SetAtlas("GM-icon-visible-pressed", false)
+            end
         end
         NS.convertDB()
         NS.sendAllCrates("REQUEST_V2")
@@ -161,6 +195,9 @@ local function OnEvent(self, event, ...)
         updateCurrentShard(UnitGUID("mouseover"))
     elseif event == "ZONE_CHANGED" or event == "ZONE_CHANGED_NEW_AREA" then
         updateCurrentShard()
+    elseif strsub(event, 0, 14) == "UNIT_SPELLCAST" then
+        local target, guid, spellid = ...
+        updateCurrentShard(guid)
     end
 end
 
@@ -191,6 +228,11 @@ NS.mainFrame:RegisterEvent("PLAYER_ENTERING_WORLD")
 NS.mainFrame:RegisterEvent("UPDATE_MOUSEOVER_UNIT")
 NS.mainFrame:RegisterEvent("ZONE_CHANGED")
 NS.mainFrame:RegisterEvent("ZONE_CHANGED_NEW_AREA")
+NS.mainFrame:RegisterEvent("UNIT_SPELLCAST_FAILED_QUIET")
+NS.mainFrame:RegisterEvent("UNIT_SPELLCAST_START")
+NS.mainFrame:RegisterEvent("UNIT_SPELLCAST_STOP")
+NS.mainFrame:RegisterEvent("UNIT_SPELLCAST_SUCCEEDED")
+NS.mainFrame:RegisterEvent("UNIT_SPELLCAST_FAILED")
 
 -- These will be added back eventually
 -- NS.mainFrame:RegisterEvent("CHAT_MSG_MONSTER_SAY")

@@ -1,3 +1,4 @@
+- **v1.1.3** - Shard detection improvements, recently seen shard filtering
 - **v1.1.2** - Bugfix for BFA zones breaking old clients
 - **v1.1.1** - Announcement bugfixes, BFA support
 - **v1.1.0** - 11.2 support, added shard-awareness (will wipe crateDB)

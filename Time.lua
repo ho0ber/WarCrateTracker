@@ -24,6 +24,9 @@ NS.displayTime = displayTime
 local function nextCrateTime(crateInfo, curTime)
     if crateInfo ~= nil then
         local zoneConfig = NS.zoneConfig[crateInfo.zoneID]
+        if zoneConfig == nil then
+            return nil
+        end
         local freq = zoneConfig.frequency
         if freq ~= nil then
             local nextCrateTS = crateInfo.ts

@@ -57,6 +57,36 @@ NS.syncButton:SetScript("OnClick", function()
 end)
 
 
+NS.seenButton = CreateFrame("Button", "Seen", NS.mainFrame)
+NS.seenButton:SetPoint("RIGHT", NS.syncButton, "LEFT", 0, 0)
+local t3 = NS.seenButton:CreateTexture()
+local t3p = NS.seenButton:CreateTexture()
+t3:SetAtlas("GM-icon-visible", false)
+t3p:SetAtlas("GM-icon-visible-pressed", false)
+NS.t3 = t3
+NS.t3p = t3p
+
+t3:SetAtlas("GM-icon-visibleDis", false)
+t3p:SetAtlas("GM-icon-visibleDis-pressed", false)
+NS.seenButton:SetNormalTexture(t3)
+NS.seenButton:SetPushedTexture(t3p)
+NS.seenButton:SetWidth(24)
+NS.seenButton:SetHeight(24)
+NS.seenButton:SetNormalFontObject("GameFontNormalSmall")
+
+NS.seenButton:SetScript("OnClick", function()
+    if not settings.lastSeenOnly then
+        settings.lastSeenOnly = true
+        t3:SetAtlas("GM-icon-visible", false)
+        t3p:SetAtlas("GM-icon-visible-pressed", false)
+    else
+        settings.lastSeenOnly = false
+        t3:SetAtlas("GM-icon-visibleDis", false)
+        t3p:SetAtlas("GM-icon-visibleDis-pressed", false)
+    end
+end)
+
+
 
 NS.mainFrame.labels = NS.mainFrame:CreateFontString(nil, "OVERLAY", "GameFontNormal")
 NS.mainFrame.labels:SetPoint("TOPLEFT", NS.mainFrame, "TOPLEFT", 15, -35)
