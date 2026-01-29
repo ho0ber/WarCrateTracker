@@ -13,7 +13,7 @@ local function getRemappedZone()
 end
 
 local function setCurrentShard(zoneID, shardID)
-    if zoneID == nil then
+    if zoneID == nil or shardID == 0 then
         return
     end
     local now = GetTime()
@@ -197,7 +197,9 @@ local function OnEvent(self, event, ...)
         updateCurrentShard()
     elseif strsub(event, 0, 14) == "UNIT_SPELLCAST" then
         local target, guid, spellid = ...
-        updateCurrentShard(guid)
+        if not issecretvalue(guid) then
+            updateCurrentShard(guid)
+        end
     end
 end
 
