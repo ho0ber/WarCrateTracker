@@ -1,3 +1,4 @@
+- **v1.1.5** - Fix for secret value bug
 - **v1.1.4** - Support for 12.0, fix misidentified shard
 - **v1.1.3** - Shard detection improvements, recently seen shard filtering
 - **v1.1.2** - Bugfix for BFA zones breaking old clients

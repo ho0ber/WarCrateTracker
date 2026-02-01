@@ -192,7 +192,10 @@ local function OnEvent(self, event, ...)
         playerEnteringWorld(event, ...)
         updateCurrentShard()
     elseif event == "UPDATE_MOUSEOVER_UNIT" then
-        updateCurrentShard(UnitGUID("mouseover"))
+        local guid = UnitGUID("mouseover")
+        if canaccessvalue(guid) then
+            updateCurrentShard(guid)
+        end
     elseif event == "ZONE_CHANGED" or event == "ZONE_CHANGED_NEW_AREA" then
         updateCurrentShard()
     elseif strsub(event, 0, 14) == "UNIT_SPELLCAST" then
