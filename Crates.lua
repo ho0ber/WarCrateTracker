@@ -6,6 +6,8 @@ local function shouldAnnounce(crateInfo)
     local zoneConfig = NS.zoneConfig[crateInfo.zoneID]
     if zoneConfig == nil then
         return false
+    elseif zoneConfig.exp == "MID" and settings["midAnnounce"] then
+        return true
     elseif zoneConfig.exp == "TWW" and settings["twwAnnounce"] then
         return true
     elseif zoneConfig.exp == "DF" and settings["dfAnnounce"] then
@@ -22,6 +24,8 @@ local function shouldTrack(crateInfo)
     local zoneConfig = NS.zoneConfig[crateInfo.zoneID]
     if zoneConfig == nil then
         return false
+    elseif zoneConfig.exp == "MID" and settings["midTrack"] then
+        return true
     elseif zoneConfig.exp == "TWW" and settings["twwTrack"] then
         return true
     elseif zoneConfig.exp == "DF" and settings["dfTrack"] then
@@ -38,6 +42,8 @@ local function shouldWarn(crateInfo)
     local zoneConfig = NS.zoneConfig[crateInfo.zoneID]
     if zoneConfig == nil then
         return false
+    elseif zoneConfig.exp == "MID" and settings["midWarn"] then
+        return true
     elseif zoneConfig.exp == "TWW" and settings["twwWarn"] then
         return true
     elseif zoneConfig.exp == "DF" and settings["dfWarn"] then

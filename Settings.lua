@@ -94,7 +94,7 @@ local function configureSettings()
         -- setting:SetValueChangedCallback(OnSettingChanged)
         Settings.CreateCheckbox(category, setting, tooltip)
     end
-
+    
 
     do
         local variable = "twwAnnounce"
@@ -129,6 +129,49 @@ local function configureSettings()
         local name = "Khaz Algar - Warn"
         local tooltip = "Make a sound and warn before Khaz Algar crates will drop"
         local variableKey = "twwWarn"
+        local variableTbl = settings
+        local defaultValue = true
+    
+        local setting = Settings.RegisterAddOnSetting(category, variable, variableKey, variableTbl, type(defaultValue), name, defaultValue)
+        -- setting:SetValueChangedCallback(OnSettingChanged)
+        Settings.CreateCheckbox(category, setting, tooltip)
+    end
+
+
+
+    do
+        local variable = "midAnnounce"
+        local name = "Midnight - Announce"
+        local tooltip = "Make a sound and announce Midnight crates"
+        local variableKey = "midAnnounce"
+        local variableTbl = settings
+        local defaultValue = true
+    
+        local setting = Settings.RegisterAddOnSetting(category, variable, variableKey, variableTbl, type(defaultValue), name, defaultValue)
+        -- setting:SetValueChangedCallback(OnSettingChanged)
+        Settings.CreateCheckbox(category, setting, tooltip)
+    end
+
+    
+    do
+        local variable = "midTrack"
+        local name = "Midnight - Track"
+        local tooltip = "Show Midnight crates in /wct output"
+        local variableKey = "midTrack"
+        local variableTbl = settings
+        local defaultValue = true
+    
+        local setting = Settings.RegisterAddOnSetting(category, variable, variableKey, variableTbl, type(defaultValue), name, defaultValue)
+        -- setting:SetValueChangedCallback(OnSettingChanged)
+        Settings.CreateCheckbox(category, setting, tooltip)
+    end
+
+    
+    do
+        local variable = "midWarn"
+        local name = "Midnight - Warn"
+        local tooltip = "Make a sound and warn before Midnight crates will drop"
+        local variableKey = "midWarn"
         local variableTbl = settings
         local defaultValue = true
     

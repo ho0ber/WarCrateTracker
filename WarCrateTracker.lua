@@ -18,6 +18,13 @@ NS.crateVignetteIDs = {
     [0]    = {name="guess",     abbr="G", vignetteID=0},
 }
 NS.zoneConfig = {
+    -- Midnight
+    [2413] = {exp="MID", name="Harandar",         shortname="Haran", abbr="MID:Hd", frequency=1095, remap=nil},
+    [2405] = {exp="MID", name="Voidstorm",        shortname="Void",  abbr="MID:VS", frequency=1095, remap=nil},
+    [2444] = {exp="MID", name="Slayer's Rise",    shortname="Slay",  abbr="MID:SR", frequency=1095, remap=nil},
+    [2395] = {exp="MID", name="Eversong Woods",   shortname="Ever",  abbr="MID:EW", frequency=1095, remap=nil},
+    [2437] = {exp="MID", name="Zul'Aman",         shortname="Zul",   abbr="MID:ZA", frequency=1095, remap=nil},
+    [2536] = {exp="MID", name="Zul'Aman",         shortname="Zul",   abbr="MID:ZA", frequency=1095, remap=2437}, --Atal'Aman
     -- The War Within, Khaz Algar
     [2248] = {exp="TWW", name="Isle of Dorn",  shortname="Dorn",    abbr="KA:Dn",  frequency=1098, remap=nil},
     [2328] = {exp="TWW", name="Isle of Dorn",  shortname="Dorn",    abbr="KA:Dn",  frequency=1098, remap=2248}, --The Proscenium
@@ -26,7 +33,6 @@ NS.zoneConfig = {
     [2255] = {exp="TWW", name="Azj-Kahet",     shortname="Azj-K",   abbr="KA:AK",  frequency=1095, remap=nil},
     [2213] = {exp="TWW", name="Azj-Kahet",     shortname="Azj-K",   abbr="KA:AK",  frequency=1095, remap=2255}, --City of Threads Umbral Bazaar
     [2216] = {exp="TWW", name="Azj-Kahet",     shortname="Azj-K",   abbr="KA:AK",  frequency=1095, remap=2255}, --Ara-Kara City of Echoes
-    [2255] = {exp="TWW", name="Azj-Kahet",     shortname="Azj-K",   abbr="KA:AK",  frequency=1095, remap=2255}, --Ara-Kara City of Threads
     [2369] = {exp="TWW", name="Siren Isle",    shortname="Siren",   abbr="KA:SI",  frequency=1095, remap=nil},
     [2346] = {exp="TWW", name="Undermine",     shortname="Under",   abbr="KA:UM",  frequency=1095, remap=nil},
     [2371] = {exp="TWW", name="K'aresh",       shortname="K'aresh", abbr="KA:Ka",  frequency=1095, remap=nil},
@@ -49,7 +55,7 @@ NS.zoneConfig = {
     [895]  = {exp="BFA", name="Tiragarde Sound",  shortname="Tira",  abbr="BFA:TS", frequency=2720, remap=nil},
     [1161] = {exp="BFA", name="Tiragarde Sound",  shortname="Tira",  abbr="BFA:TS", frequency=2720, remap=895}, --Boralus
     [863]  = {exp="BFA", name="Nazmir",           shortname="Nazm",  abbr="BFA:Nz", frequency=2720, remap=nil},
-    [864]  = {exp="BFA", name="Vol'dun",          shortname="Nazm",  abbr="BFA:Nz", frequency=2720, remap=nil},
+    [864]  = {exp="BFA", name="Vol'dun",          shortname="Nazm",  abbr="BFA:Vd", frequency=2720, remap=nil},
     [1462] = {exp="BFA", name="Mechagon",         shortname="Mecha", abbr="BFA:Mg", frequency=2720, remap=nil},
 }
 
