@@ -25,6 +25,7 @@ NS.zoneConfig = {
     [2395] = {exp="MID", name="Eversong Woods",   shortname="Ever",  abbr="MID:EW", frequency=1095, remap=nil},
     [2437] = {exp="MID", name="Zul'Aman",         shortname="Zul",   abbr="MID:ZA", frequency=1095, remap=nil},
     [2536] = {exp="MID", name="Zul'Aman",         shortname="Zul",   abbr="MID:ZA", frequency=1095, remap=2437}, --Atal'Aman
+    [2512] = {exp="MID", name="Coiled Isle",      shortname="Coil",  abbr="MID:CI", frequency=1095, remap=nil}, -- Coiled Isle
     -- The War Within, Khaz Algar
     [2248] = {exp="TWW", name="Isle of Dorn",  shortname="Dorn",    abbr="KA:Dn",  frequency=1098, remap=nil},
     [2328] = {exp="TWW", name="Isle of Dorn",  shortname="Dorn",    abbr="KA:Dn",  frequency=1098, remap=2248}, --The Proscenium

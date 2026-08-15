@@ -1,3 +1,4 @@
+- **v1.1.7** - New zone support
 - **v1.1.6** - Midnight Zone Support
 - **v1.1.5** - Fix for secret value bug
 - **v1.1.4** - Support for 12.0, fix misidentified shard
